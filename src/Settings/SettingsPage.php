@@ -176,6 +176,9 @@ final class SettingsPage
                 self::secretRow('anthropic_api_key', __('API key', 'sonoquill'), $values),
                 self::textRow('anthropic_model', __('Model', 'sonoquill'), $values, __('For extraction, script, editing, fact check, metadata and dictionary. Since 25.09.2026 claude-opus-5-5: better than Opus 5 and 20 % cheaper.', 'sonoquill')),
                 self::textRow('anthropic_model_research', __('Model for web research', 'sonoquill'), $values, __('Research is supplementary; claude-sonnet-5 costs less than half.', 'sonoquill')),
+                self::textRow('anthropic_model_factcheck', __('Model for the fact check', 'sonoquill'), $values, __('Optional. Empty: the main model.', 'sonoquill')),
+                self::textRow('anthropic_model_metadata', __('Model for the metadata', 'sonoquill'), $values, __('Optional. Empty: the main model. Title, descriptions and chapters also work well with a smaller model.', 'sonoquill')),
+                self::textRow('anthropic_model_dictionary', __('Model for dictionary suggestions', 'sonoquill'), $values, __('Optional. Empty: the main model.', 'sonoquill')),
                 self::checkboxRow('anthropic_batch', __('Batch API', 'sonoquill'), $values, __('Model calls at half price via the Batch API. The result usually arrives within an hour instead of immediately; the chain then continues on its own. Web research always runs directly.', 'sonoquill')),
                 self::textRow('anthropic_workspace_id', __('Workspace ID', 'sonoquill'), $values, __('Only needed if the key is identity-bound — then the API requires the anthropic-workspace-id header. Leave empty if the key is already bound to a workspace.', 'sonoquill')),
             ]

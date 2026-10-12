@@ -31,7 +31,7 @@ final class FactCheck
             : SourceDocument::fromArray($blocks)->forPrompt();
 
         try {
-            $client = AnthropicClient::fromSettings();
+            $client = AnthropicClient::fromSettings('faktenpruefung');
             $response = \Sonoquill\Ai\BatchGate::complete(
                 $client,
                 $episodeId,

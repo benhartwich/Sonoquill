@@ -28,10 +28,47 @@ final class AnthropicClient
     ) {
     }
 
+    /** Pipeline step => setting with a model of its own (empty: main model). */
+    public const STEP_MODEL_OPTIONS = [
+        'faktenpruefung' => 'anthropic_model_factcheck',
+        'metadaten'      => 'anthropic_model_metadata',
+        'woerterbuch'    => 'anthropic_model_dictionary',
+        'research'       => 'anthropic_model_research',
+    ];
+
     /**
+     * The model for a pipeline step: the step's own setting if filled in,
+     * otherwise the main model — then the filter `sonoquill_model_for_step`.
+     *
+     * Steps used by the core: redigat, metadaten, faktenpruefung,
+     * woerterbuch; research for add-ons with web research. null or '' means
+     * no particular step.
+     */
+    public static function modelForStep(?string $step = null): string
+    {
+        $step = (string) $step;
+        $model = trim(Options::get('anthropic_model'));
+
+        $option = self::STEP_MODEL_OPTIONS[$step] ?? '';
+        if ($option !== '' && trim(Options::get($option)) !== '') {
+            $model = trim(Options::get($option));
+        }
+
+        /**
+         * Filter: the model used for one pipeline step.
+         *
+         * @param string $model Model ID from the settings.
+         * @param string $step  Step name (redigat, metadaten, faktenpruefung, woerterbuch, research) or ''.
+         */
+        return trim((string) apply_filters('sonoquill_model_for_step', $model, $step));
+    }
+
+    /**
+     * @param string|null $step Pipeline step, see modelForStep().
+     *
      * @throws AnthropicException
      */
-    public static function fromSettings(): self
+    public static function fromSettings(?string $step = null): self
     {
         try {
             $key = Options::secret('anthropic_api_key');
@@ -43,12 +80,26 @@ final class AnthropicClient
             throw new AnthropicException(__('No Anthropic API key has been configured.', 'sonoquill'));
         }
 
-        $model = Options::get('anthropic_model');
+        $model = self::modelForStep($step);
         if ($model === '') {
             throw new AnthropicException(__('No Anthropic model has been selected.', 'sonoquill'));
         }
 
         return new self($key, $model, Options::get('anthropic_workspace_id'));
+    }
+
+    /**
+     * The same client with another model — for a single call that needs a
+     * different one.
+     */
+    public function withModel(string $model): self
+    {
+        $model = trim($model);
+        if ($model === '') {
+            throw new \InvalidArgumentException('Empty model name.');
+        }
+
+        return new self($this->apiKey, $model, $this->workspaceId);
     }
 
     public function model(): string

@@ -51,6 +51,10 @@ final class Options
             'anthropic_api_key'    => '',
             'anthropic_model'      => 'claude-opus-5-5',
             'anthropic_model_research' => 'claude-sonnet-5',
+            // Models for single steps; empty means the main model.
+            'anthropic_model_factcheck'  => '',
+            'anthropic_model_metadata'   => '',
+            'anthropic_model_dictionary' => '',
             'anthropic_batch'      => true,
             // Hard number gate (NumberDiff). Only German and English figures
             // are understood; for other languages it is switched off anyway.

@@ -29,7 +29,7 @@ final class Metadata
         }
 
         try {
-            $client = AnthropicClient::fromSettings();
+            $client = AnthropicClient::fromSettings('metadaten');
             $sections = MetadataPrompt::sections($script);
 
             $response = \Sonoquill\Ai\BatchGate::complete(
