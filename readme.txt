@@ -4,7 +4,7 @@ Tags: podcast, text to speech, voice clone, podlove, auphonic
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,7 +104,7 @@ Terms: https://auphonic.com/terms_of_service — Privacy: https://auphonic.com/p
 
 == Changelog ==
 
-= 0.4.0 (Unreleased) =
+= 0.4.0 =
 * Podcast languages beyond German and English: any language code; prompts per language (backend, prompt directory subfolder, bundled, English fallback). The number check runs only for German and English, can be switched off (setting or per source) and the health check says when it is off.
 * Actions for add-ons: sonoquill_status_changed, sonoquill_text_ready, sonoquill_text_approved, sonoquill_montage_done.
 * Public approval API (Sonoquill\Pipeline\Approval::approveText) and, opt-in, a signed one-click approval link in the notification mail (confirmation page, valid 48 hours, void after an edit).

@@ -3,7 +3,7 @@
  * Plugin Name:       Sonoquill – AI Podcast Production
  * Plugin URI:        https://github.com/benhartwich/sonoquill
  * Description:       Turns a fact script, a post or a custom source into a finished podcast episode: speaking script via language model, number and fact checking, speech synthesis with your own voice clone, assembly, mastering and a Podlove draft — with two human approvals.
- * Version:           0.3.0
+ * Version:           0.4.0
  * Requires at least: 6.9
  * Requires PHP:      8.2
  * Author:            Benjamin Hartwich
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('AASPF_VERSION', '0.3.0');
+define('AASPF_VERSION', '0.4.0');
 define('AASPF_PLUGIN_FILE', __FILE__);
 define('AASPF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('AASPF_PLUGIN_URL', plugin_dir_url(__FILE__));
