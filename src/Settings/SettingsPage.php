@@ -144,12 +144,8 @@ final class SettingsPage
                     __('Leave empty to use the title from Podlove or the site name. Currently: %s', 'sonoquill'),
                     Options::podcastName()
                 )),
-                self::selectRow('podcast_language', __('Podcast language', 'sonoquill'), $values, [
-                    /* translators: %s: name of the site language (Deutsch or English) */
-                    ''   => sprintf(__('same as the site (%s)', 'sonoquill'), Options::language() === 'de' ? 'Deutsch' : 'English'),
-                    'de' => 'Deutsch',
-                    'en' => 'English',
-                ], __('Determines the bundled prompts and the number matching.', 'sonoquill')),
+                self::selectRow('podcast_language', __('Podcast language', 'sonoquill'), $values, self::languageChoices($values), __('Determines the prompts and the number matching. Bundled prompts exist for German and English; for other languages the English prompts apply until you save your own (Prompts page or prompt directory, subfolder per language code). The number check only understands German and English figures.', 'sonoquill')),
+                self::checkboxRow('number_gate', __('Number check', 'sonoquill'), $values, __('Compare every figure in the spoken script with the source and lock approval on deviations. Only works for German and English; for other languages it is always off.', 'sonoquill')),
                 self::textRow('podcast_host', __('Host', 'sonoquill'), $values, __('Whose voice reads as the clone. Appears in the AI notice ({host}) and in the greeting.', 'sonoquill')),
                 self::textRow('podcast_editor', __('Editor', 'sonoquill'), $values, __('Optional. Who writes the drafts; mentioned in the greeting ({editor}).', 'sonoquill')),
                 self::textRow('podcast_sign_off', __('Sign-off', 'sonoquill'), $values, __('Optional. A fixed farewell at the end of every episode ({sign_off}).', 'sonoquill')),
@@ -342,6 +338,41 @@ final class SettingsPage
         echo '<table class="form-table" role="presentation"><tbody>';
         echo wp_kses(implode('', $rows), \Sonoquill\Admin\Html::allowed());
         echo '</tbody></table>';
+    }
+
+    /**
+     * Choices for the podcast language. Any language code works; the list
+     * offers common ones, keeps a stored code that is not in it and can be
+     * extended with the filter `sonoquill_podcast_languages` (code => name).
+     *
+     * @param array<string,mixed> $values
+     *
+     * @return array<string,string>
+     */
+    private static function languageChoices(array $values): array
+    {
+        $choices = [
+            /* translators: %s: name of the site language (Deutsch or English) */
+            ''   => sprintf(__('same as the site (%s)', 'sonoquill'), str_starts_with(function_exists('get_locale') ? (string) get_locale() : 'en_US', 'de') ? 'Deutsch' : 'English'),
+            'de' => 'Deutsch',
+            'en' => 'English',
+            'cs' => 'Čeština',
+            'es' => 'Español',
+            'fr' => 'Français',
+            'it' => 'Italiano',
+            'nl' => 'Nederlands',
+            'pl' => 'Polski',
+            'pt' => 'Português',
+            'uk' => 'Українська',
+        ];
+        $choices = (array) apply_filters('sonoquill_podcast_languages', $choices);
+
+        $stored = Options::normalizeLanguage((string) ($values['podcast_language'] ?? ''));
+        if ($stored !== '' && !isset($choices[$stored])) {
+            $choices[$stored] = $stored;
+        }
+
+        return array_map('strval', $choices);
     }
 
     /**

@@ -6,8 +6,18 @@ namespace Sonoquill\Source;
 /**
  * Neutral defaults for everything a simple source does not need.
  */
-abstract class AbstractSource implements Source
+abstract class AbstractSource implements Source, SourcePreferences
 {
+    public function usesNumberGate(array $episode): bool
+    {
+        return true;
+    }
+
+    public function prefersBatch(array $episode): ?bool
+    {
+        return null;
+    }
+
     public function preparesText(): bool
     {
         return false;

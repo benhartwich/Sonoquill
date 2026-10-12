@@ -52,6 +52,9 @@ final class Options
             'anthropic_model'      => 'claude-opus-5-5',
             'anthropic_model_research' => 'claude-sonnet-5',
             'anthropic_batch'      => true,
+            // Hard number gate (NumberDiff). Only German and English figures
+            // are understood; for other languages it is switched off anyway.
+            'number_gate'          => true,
             'music_enabled'        => false,
             'anthropic_workspace_id' => '',
             'auphonic_api_key'     => '',
@@ -137,19 +140,49 @@ final class Options
     }
 
     /**
-     * Language of the podcast: "de" or "en". Determines the prompts and the
-     * number comparison. Empty: taken from the language of the website.
+     * Language of the podcast as a lowercase BCP-47-style code ("de", "en",
+     * "uk", "pt-br"). Determines the prompts and whether the number
+     * comparison can run. Empty: taken from the language of the website —
+     * "de" for a German site, otherwise "en", exactly as before 0.4.0.
      */
     public static function language(): string
     {
-        $configured = strtolower(trim(self::get('podcast_language')));
-        if (in_array($configured, ['de', 'en'], true)) {
+        $configured = self::normalizeLanguage(self::get('podcast_language'));
+        if ($configured !== '') {
             return $configured;
         }
 
         $locale = function_exists('get_locale') ? (string) get_locale() : 'en_US';
 
         return str_starts_with($locale, 'de') ? 'de' : 'en';
+    }
+
+    /**
+     * A language code in the form used internally, or '' if it does not
+     * look like one. Accepts "uk", "UK", "pt_BR", "pt-BR", "de-AT".
+     */
+    public static function normalizeLanguage(string $code): string
+    {
+        $code = strtolower(str_replace('_', '-', trim($code)));
+
+        return preg_match('/^[a-z]{2,3}(-[a-z0-9]{2,8}){0,2}$/', $code) === 1 ? $code : '';
+    }
+
+    /** The primary subtag of the podcast language: "pt" for "pt-br". */
+    public static function baseLanguage(): string
+    {
+        return explode('-', self::language())[0];
+    }
+
+    /**
+     * Language for the plugin's own wording inside prompts and mails
+     * (section headers, labels): German for German podcasts, English for
+     * every other language — the model understands English instructions
+     * whatever language it is asked to write in.
+     */
+    public static function isGerman(): bool
+    {
+        return self::baseLanguage() === 'de';
     }
 
     /**

@@ -35,3 +35,6 @@ if (!function_exists('_x')) {
         return $text;
     }
 }
+
+require __DIR__ . '/wp-stubs.php';
+\Sonoquill\Tests\Wp::reset();

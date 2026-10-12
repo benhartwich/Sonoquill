@@ -31,6 +31,7 @@ final class SettingsSanitizer
         'delete_data_on_uninstall',
         'anthropic_batch',
         'music_enabled',
+        'number_gate',
     ];
 
     /** Fields that are stored in plain text. */
@@ -133,6 +134,11 @@ final class SettingsSanitizer
                 /* translators: %s: name of the settings field */
                 add_settings_error(Options::OPTION, 'aaspf_number_' . $field, sprintf(__('Invalid value for %s — the previous value is kept.', 'sonoquill'), $field), 'warning');
             }
+        }
+
+        // Any language code, normalised ("pt_BR" → "pt-br"); anything else means "same as the site".
+        if (array_key_exists('podcast_language', $input)) {
+            $out['podcast_language'] = Options::normalizeLanguage((string) $input['podcast_language']);
         }
 
         if (array_key_exists('notify_email', $input)) {

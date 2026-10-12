@@ -124,7 +124,7 @@ final class PronunciationDictionary
     {
         $graphemes = self::graphemes();
 
-        if (\Sonoquill\Settings\Options::language() === 'en') {
+        if (!\Sonoquill\Settings\Options::isGerman()) {
             if ($graphemes === []) {
                 return "## PRONUNCIATION DICTIONARY\n\n"
                     . "No pronunciation dictionary is connected at the moment.\n\n"

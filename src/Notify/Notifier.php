@@ -74,13 +74,15 @@ final class Notifier
         $lines[] = '';
         /* translators: 1: number of characters in the speech script, 2: estimated spoken minutes */
         $lines[] = sprintf(__('Length: %1$s characters of speech script, about %2$d minutes spoken.', 'sonoquill'), number_format_i18n($chars), self::minutes($chars));
-        $lines[] = sprintf(
-            /* translators: 1: number of invented figures, 2: number of missing figures, 3: number of changed figures */
-            __('Number diff: %1$d invented, %2$d missing, %3$d changed.', 'sonoquill'),
-            count((array) ($diff['erfunden'] ?? [])),
-            count((array) ($diff['fehlt'] ?? [])),
-            count((array) ($diff['geaendert'] ?? []))
-        );
+        $lines[] = isset($diff['aus'])
+            ? __('Number diff: switched off for this episode — please check the figures yourself.', 'sonoquill')
+            : sprintf(
+                /* translators: 1: number of invented figures, 2: number of missing figures, 3: number of changed figures */
+                __('Number diff: %1$d invented, %2$d missing, %3$d changed.', 'sonoquill'),
+                count((array) ($diff['erfunden'] ?? [])),
+                count((array) ($diff['fehlt'] ?? [])),
+                count((array) ($diff['geaendert'] ?? []))
+            );
         /* translators: 1: total number of fact check findings, 2: number of severe findings */
         $lines[] = sprintf(__('Fact check: %1$d findings, %2$d of them severe.', 'sonoquill'), count($facts), $severe);
 

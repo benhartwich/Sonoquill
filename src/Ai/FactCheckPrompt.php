@@ -31,7 +31,8 @@ final class FactCheckPrompt
 
     public static function user(string $source, string $script): string
     {
-        $en = \Sonoquill\Settings\Options::language() === 'en';
+        // German wording for German podcasts, English for every other language.
+        $en = !\Sonoquill\Settings\Options::isGerman();
 
         return ($en ? "## Source, the fact script\n\n" : "## Vorlage, das Faktenskript\n\n") . trim($source)
             . ($en ? "\n\n---\n\n## Spoken script, to check\n\n" : "\n\n---\n\n## Sprechskript, zu prüfen\n\n") . trim($script);
