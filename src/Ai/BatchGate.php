@@ -51,6 +51,33 @@ final class BatchGate
     }
 
     /**
+     * Batch or direct for this call: the setting, unless the source of the
+     * episode has a preference (SourcePreferences::prefersBatch) — then
+     * the filter `sonoquill_use_batch` decides last.
+     */
+    public static function useBatch(int $episodeId, string $step): bool
+    {
+        $use = self::enabled();
+
+        $episode = $episodeId > 0 ? EpisodeRepository::find($episodeId) : null;
+        if ($episode !== null) {
+            $preference = \Sonoquill\Source\Sources::prefersBatch($episode);
+            if ($preference !== null) {
+                $use = $preference;
+            }
+        }
+
+        /**
+         * Filter: use the Batch API for this model call?
+         *
+         * @param bool   $use       From the setting or the source's preference.
+         * @param int    $episodeId Episode ID.
+         * @param string $step      Pipeline step (redigat, metadaten, faktenpruefung, woerterbuch …).
+         */
+        return (bool) apply_filters('sonoquill_use_batch', $use, $episodeId, $step);
+    }
+
+    /**
      * @param string|list<array<string,mixed>> $user
      * @param array<string,mixed>              $options
      *
@@ -66,7 +93,7 @@ final class BatchGate
         string|array $user,
         array $options = []
     ): AnthropicResponse {
-        if (!self::enabled()) {
+        if (!self::useBatch($episodeId, $step)) {
             return $client->complete($system, $user, $options);
         }
 
