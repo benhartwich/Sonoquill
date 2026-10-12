@@ -8,11 +8,11 @@ Sonoquill grew out of the monthly sky-preview podcast of an astronomy club and i
 
 1. **Source → fact script.** Upload a DOCX or paste text, pick a post or page of the site, or plug in your own source (see *Sources* below).
 2. **Fact script → spoken script.** A language model (Anthropic Claude) rewrites the text for the ear: numbers as words, spoken transitions, a fixed opening and sign-off.
-3. **Checks before you approve.** A deterministic number gate compares every number, time and date of the source with the spoken script (German and English). A second model call looks for changed, missing or invented statements. Nothing blocking goes through unconfirmed.
+3. **Checks before you approve.** A deterministic number gate compares every number, time and date of the source with the spoken script (German and English; off for other languages). A second model call looks for changed, missing or invented statements. Nothing blocking goes through unconfirmed.
 4. **Your approval.** You read, edit and approve the spoken script in WordPress. You get an e-mail when it is waiting.
 5. **Speech synthesis** with your ElevenLabs voice clone, segment by segment, with a pronunciation dictionary that grows with every episode. Single segments can be regenerated or re-recorded with your own voice (speech-to-speech).
 6. **Assembly.** Segments, pauses, opener, rotating music bridges between chapters, outro, chapter marks and a WebVTT transcript.
-7. **Mastering** with Auphonic, then a **Podlove draft** with title, descriptions, chapters, transcript and an AI disclosure.
+7. **Mastering** with Auphonic (or, in the production mode *direct*, the assembly as it is), then a **Podlove draft** with title, descriptions, chapters, transcript and an AI disclosure.
 8. **Your second approval** — the episode goes online only when you publish it.
 
 ## Two assembly paths
@@ -50,7 +50,7 @@ Then open *Sonoquill → Settings*: podcast details (name, host, sign-off, langu
 
 ## Prompts and languages
 
-The prompts live in `prompts/de/` and `prompts/en/` and can be edited in the backend (*Sonoquill → Prompts*) or overridden by files in a directory of your choice. Placeholders `{podcast}`, `{host}`, `{editor}`, `{sign_off}` are filled from the settings. The interface is English with a German translation; other languages can be added via `languages/sonoquill.pot`.
+The prompts live in `prompts/de/` and `prompts/en/` and can be edited in the backend (*Sonoquill → Prompts*) or overridden by files in a directory of your choice — `<dir>/<lang>/<name>.md` first, then `<dir>/<name>.md`. The podcast language can be any language code (`uk`, `fr`, `pt-br` …); without prompts of its own the English ones apply, and the number gate is off (the health check says so). Placeholders `{podcast}`, `{host}`, `{editor}`, `{sign_off}` are filled from the settings. The interface is English with a German translation; other languages can be added via `languages/sonoquill.pot`.
 
 ## Sources
 
@@ -62,7 +62,36 @@ add_action('sonoquill_register_sources', static function (): void {
 });
 ```
 
-Extend `Sonoquill\Source\AbstractSource` and implement `id()`, `label()`, `description()` and `renderStartForm()`; create episodes with `Sonoquill\Source\EpisodeFactory::fromDocument()`. Sources that work in the background can report progress, contribute checklist items, block the approval, add show-notes sections and more — see `src/Source/Source.php`. Further hooks for add-ons: `sonoquill_option_defaults`, `sonoquill_settings_fields`, `sonoquill_settings_sections`, `sonoquill_overview_cards`, `sonoquill_overview_panels`, `sonoquill_health_checks`, `sonoquill_daily`.
+Extend `Sonoquill\Source\AbstractSource` and implement `id()`, `label()`, `description()` and `renderStartForm()`; create episodes with `Sonoquill\Source\EpisodeFactory::fromDocument()`. Sources that work in the background can report progress, contribute checklist items, block the approval, add show-notes sections and more — see `src/Source/Source.php`. Through `Sonoquill\Source\SourcePreferences` (implemented by `AbstractSource`) a source can switch the number gate off for its episodes (`usesNumberGate()`) and choose the Batch API (`prefersBatch()`). Blocks of type `SourceBlock::CONTEXT` are background for the script: the model sees them, the fact check and the number gate do not.
+
+## Hooks
+
+Actions:
+
+| Hook | Arguments | When |
+|---|---|---|
+| `sonoquill_register_sources` | — | first access to the sources |
+| `sonoquill_status_changed` | `int $id, string $old, string $new` | every status change (`EpisodeRepository::update`) |
+| `sonoquill_text_ready` | `int $id, string $status` | script, title and fact check are complete; once per script version |
+| `sonoquill_text_approved` | `int $id, string $actor` | after the text approval |
+| `sonoquill_montage_done` | `int $id, string $relativePath` | end of the montage (path relative to the storage directory) |
+| `sonoquill_settings_sections` | `array $values` | settings page |
+| `sonoquill_daily` | — | daily run |
+
+Filters:
+
+| Hook | Value, arguments |
+|---|---|
+| `sonoquill_model_for_step` | `string $model, string $step` (`redigat`, `metadaten`, `faktenpruefung`, `woerterbuch`, `research`) |
+| `sonoquill_model_rates` | `array $rates` model prefix => [input, output] USD per million tokens |
+| `sonoquill_use_batch` | `bool $use, int $episodeId, string $step` |
+| `sonoquill_music_for_episode` | `array $music` (opener, outro, trenner), `int $episodeId` |
+| `sonoquill_episode_slug` | `string $slug, array $episode` — only when the slug is first generated |
+| `sonoquill_podcast_languages` | `array $choices` language code => name for the settings |
+| `sonoquill_storage_dir`, `sonoquill_dictionary_file`, `sonoquill_podlove_asset` | paths and the Podlove asset |
+| `sonoquill_option_defaults`, `sonoquill_settings_fields`, `sonoquill_health_checks`, `sonoquill_overview_cards`, `sonoquill_overview_panels` | settings, health checks, overview |
+
+The text approval is available as an API: `Sonoquill\Pipeline\Approval::approveText(int $id, string $actor = 'admin', bool $ignoreGate = false): bool` (reason in `Approval::lastError()`). It runs the same checks as the button and starts the automatic chain.
 
 ## Development
 

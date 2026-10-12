@@ -104,6 +104,19 @@ Terms: https://auphonic.com/terms_of_service — Privacy: https://auphonic.com/p
 
 == Changelog ==
 
+= 0.4.0 (Unreleased) =
+* Podcast languages beyond German and English: any language code; prompts per language (backend, prompt directory subfolder, bundled, English fallback). The number check runs only for German and English, can be switched off (setting or per source) and the health check says when it is off.
+* Actions for add-ons: sonoquill_status_changed, sonoquill_text_ready, sonoquill_text_approved, sonoquill_montage_done.
+* Public approval API (Sonoquill\Pipeline\Approval::approveText) and, opt-in, a signed one-click approval link in the notification mail (confirmation page, valid 48 hours, void after an edit).
+* Production mode "direct": the montage goes to Podlove without Auphonic.
+* Model per step (fact check, metadata, dictionary) and the filter sonoquill_model_for_step; prices for Claude Sonnet 5.5, Haiku 5.5 and Fable 5.1, filter sonoquill_model_rates; unknown models are estimated at the most expensive rate.
+* Approval is blocked while the pronunciation dictionary has no pinned version; "Pin latest version" button.
+* Context blocks in the source: background for the script that is neither fact-checked nor number-checked.
+* Storage hardening: index.html in the storage and music folders, server snippets in the storage check, warning about Podlove download redirects next to a protected feed.
+* Opener and outro variants (opener-1 … opener-5, outro-1 … outro-5) used fixed, in turn or randomly per episode; filter sonoquill_music_for_episode.
+* Batch API per source and per call (filter sonoquill_use_batch).
+* Filter sonoquill_episode_slug; Cyrillic titles are transliterated, and an empty slug becomes prefix plus date.
+
 = 0.3.0 =
 * Renamed to Sonoquill.
 * Episode data is stored in uploads/sonoquill/ (protected, movable with the sonoquill_storage_dir filter); the storage check tests whether the folder can be downloaded from the web.
