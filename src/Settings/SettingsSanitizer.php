@@ -31,6 +31,8 @@ final class SettingsSanitizer
         'delete_data_on_uninstall',
         'anthropic_batch',
         'music_enabled',
+        'number_gate',
+        'mail_approval_links',
     ];
 
     /** Fields that are stored in plain text. */
@@ -47,6 +49,9 @@ final class SettingsSanitizer
         'elevenlabs_dictionary_version_id',
         'anthropic_model',
         'anthropic_model_research',
+        'anthropic_model_factcheck',
+        'anthropic_model_metadata',
+        'anthropic_model_dictionary',
         'anthropic_workspace_id',
         'auphonic_preset',
         'prompt_dir',
@@ -133,6 +138,20 @@ final class SettingsSanitizer
                 /* translators: %s: name of the settings field */
                 add_settings_error(Options::OPTION, 'aaspf_number_' . $field, sprintf(__('Invalid value for %s — the previous value is kept.', 'sonoquill'), $field), 'warning');
             }
+        }
+
+        if (array_key_exists('music_rotation', $input)) {
+            $rotation = (string) $input['music_rotation'];
+            $out['music_rotation'] = in_array($rotation, \Sonoquill\Audio\MusicBed::ROTATIONS, true) ? $rotation : 'fixed';
+        }
+
+        if (array_key_exists('production_mode', $input)) {
+            $out['production_mode'] = (string) $input['production_mode'] === 'direct' ? 'direct' : 'auphonic';
+        }
+
+        // Any language code, normalised ("pt_BR" → "pt-br"); anything else means "same as the site".
+        if (array_key_exists('podcast_language', $input)) {
+            $out['podcast_language'] = Options::normalizeLanguage((string) $input['podcast_language']);
         }
 
         if (array_key_exists('notify_email', $input)) {

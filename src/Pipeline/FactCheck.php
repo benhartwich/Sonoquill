@@ -28,10 +28,10 @@ final class FactCheck
         $blocks = EpisodeRepository::decodeList($episode['source_blocks'] ?? null);
         $source = $blocks === []
             ? (string) ($episode['source_text'] ?? '')
-            : SourceDocument::fromArray($blocks)->forPrompt();
+            : SourceDocument::fromArray($blocks)->forFactCheck();
 
         try {
-            $client = AnthropicClient::fromSettings();
+            $client = AnthropicClient::fromSettings('faktenpruefung');
             $response = \Sonoquill\Ai\BatchGate::complete(
                 $client,
                 $episodeId,

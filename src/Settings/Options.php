@@ -51,12 +51,24 @@ final class Options
             'anthropic_api_key'    => '',
             'anthropic_model'      => 'claude-opus-5-5',
             'anthropic_model_research' => 'claude-sonnet-5',
+            // Models for single steps; empty means the main model.
+            'anthropic_model_factcheck'  => '',
+            'anthropic_model_metadata'   => '',
+            'anthropic_model_dictionary' => '',
             'anthropic_batch'      => true,
+            // Hard number gate (NumberDiff). Only German and English figures
+            // are understood; for other languages it is switched off anyway.
+            'number_gate'          => true,
             'music_enabled'        => false,
+            // Opener/outro variants: fixed, rotate or random (deterministic per episode).
+            'music_rotation'       => 'fixed',
             'anthropic_workspace_id' => '',
             'auphonic_api_key'     => '',
             'auphonic_preset'      => '',
             'auphonic_webhook_token' => '',
+            // 'auphonic': mastering at Auphonic (default). 'direct': the montage
+            // MP3 goes to Podlove as it is.
+            'production_mode'      => 'auphonic',
             'ai_disclosure_text'   => $german
                 ? 'Zur Entstehung dieser Folge: Der Text wurde mit Unterstützung eines Sprachmodells aufbereitet und wird von einer synthetischen Nachbildung der Stimme von {host} gelesen. Zahlen und Inhalte werden maschinell gegen die Vorlage geprüft, und online geht nur, was ein Mensch freigegeben hat.'
                 : 'About this episode: the text was prepared with the help of a language model and is read by a synthetic replica of the voice of {host}. Numbers and content are checked automatically against the source, and nothing goes online that a person has not approved.',
@@ -64,6 +76,8 @@ final class Options
                 ? 'Noch ein Hinweis in eigener Sache: Diese Folge ist mit Unterstützung künstlicher Intelligenz entstanden, und die Stimme, die ihr hört, ist eine synthetische Nachbildung meiner eigenen. Bevor eine Folge online geht, prüfe ich Text und Ton selbst.'
                 : 'One more note: this episode was created with the help of artificial intelligence, and the voice you are hearing is a synthetic replica of my own. Before an episode goes online, I check the text and the audio myself.',
             'notify_email'         => '',
+            // One-click approval link in the "text awaiting approval" mail. Opt-in.
+            'mail_approval_links'  => false,
             'prompt_dir'           => '',
             'voice_stability'      => '0.5',
             'voice_similarity'     => '0.75',
@@ -137,19 +151,49 @@ final class Options
     }
 
     /**
-     * Language of the podcast: "de" or "en". Determines the prompts and the
-     * number comparison. Empty: taken from the language of the website.
+     * Language of the podcast as a lowercase BCP-47-style code ("de", "en",
+     * "uk", "pt-br"). Determines the prompts and whether the number
+     * comparison can run. Empty: taken from the language of the website —
+     * "de" for a German site, otherwise "en", exactly as before 0.4.0.
      */
     public static function language(): string
     {
-        $configured = strtolower(trim(self::get('podcast_language')));
-        if (in_array($configured, ['de', 'en'], true)) {
+        $configured = self::normalizeLanguage(self::get('podcast_language'));
+        if ($configured !== '') {
             return $configured;
         }
 
         $locale = function_exists('get_locale') ? (string) get_locale() : 'en_US';
 
         return str_starts_with($locale, 'de') ? 'de' : 'en';
+    }
+
+    /**
+     * A language code in the form used internally, or '' if it does not
+     * look like one. Accepts "uk", "UK", "pt_BR", "pt-BR", "de-AT".
+     */
+    public static function normalizeLanguage(string $code): string
+    {
+        $code = strtolower(str_replace('_', '-', trim($code)));
+
+        return preg_match('/^[a-z]{2,3}(-[a-z0-9]{2,8}){0,2}$/', $code) === 1 ? $code : '';
+    }
+
+    /** The primary subtag of the podcast language: "pt" for "pt-br". */
+    public static function baseLanguage(): string
+    {
+        return explode('-', self::language())[0];
+    }
+
+    /**
+     * Language for the plugin's own wording inside prompts and mails
+     * (section headers, labels): German for German podcasts, English for
+     * every other language — the model understands English instructions
+     * whatever language it is asked to write in.
+     */
+    public static function isGerman(): bool
+    {
+        return self::baseLanguage() === 'de';
     }
 
     /**
@@ -184,6 +228,14 @@ final class Options
             '{editor}'   => trim(self::get('podcast_editor')) !== '' ? trim(self::get('podcast_editor')) : '—',
             '{sign_off}' => trim(self::get('podcast_sign_off')) !== '' ? trim(self::get('podcast_sign_off')) : '—',
         ]);
+    }
+
+    /**
+     * Does the montage go to Podlove directly, without Auphonic?
+     */
+    public static function directProduction(): bool
+    {
+        return self::get('production_mode') === 'direct';
     }
 
     public static function flag(string $key): bool

@@ -66,6 +66,7 @@ final class DictionaryCheck implements CheckInterface
             return Result::fail(
                 __('No version pinned.', 'sonoquill'),
                 __('Every request must pass the version_id explicitly. Without it, the latest version applies, and later maintenance retroactively changes the result of a re-run.', 'sonoquill')
+                . ' ' . __('Text approval is blocked until a version is pinned — use “Pin latest version” in the settings.', 'sonoquill')
             );
         }
 

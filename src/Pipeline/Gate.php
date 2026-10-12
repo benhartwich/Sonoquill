@@ -7,6 +7,7 @@ namespace Sonoquill\Pipeline;
 
 use Sonoquill\Db\EpisodeRepository;
 use Sonoquill\Db\EpisodeStatus;
+use Sonoquill\Numbers\DiffResult;
 use Sonoquill\Numbers\NumberDiff;
 use Sonoquill\Numbers\ScriptGuard;
 
@@ -32,10 +33,13 @@ final class Gate
             throw new \RuntimeException(sprintf(__('Episode %d does not exist.', 'sonoquill'), $episodeId));
         }
 
-        $source = (string) ($episode['source_text'] ?? '');
+        $source = self::numberSource($episode);
         $script = (string) ($episode['script_text'] ?? '');
 
-        $diff = NumberDiff::compare($source, $script, \Sonoquill\Settings\Options::language());
+        $gateOff = self::numberGateOffReason($episode);
+        $diff = $gateOff === ''
+            ? NumberDiff::compare($source, $script, \Sonoquill\Settings\Options::baseLanguage())
+            : new DiffResult([], [], [], []);
         $guard = ScriptGuard::check($script);
 
         $acknowledged = EpisodeRepository::decodeList($episode['diff_acknowledged'] ?? null);
@@ -58,8 +62,14 @@ final class Gate
             || $openFacts !== []
             || $openEvidence !== [];
 
+        $diffArray = $diff->toArray();
+        if ($gateOff !== '') {
+            // Recorded so that the episode view and the mail can say why there are no number findings.
+            $diffArray['aus'] = $gateOff;
+        }
+
         $fields = [
-            'diff_json'  => (string) wp_json_encode($diff->toArray()),
+            'diff_json'  => (string) wp_json_encode($diffArray),
             'guard_json' => (string) wp_json_encode($guard),
         ];
 
@@ -84,11 +94,58 @@ final class Gate
 
         return [
             'blocking'    => $blocking,
-            'diff'        => $diff->toArray(),
+            'diff'        => $diffArray,
             'guard'       => $guard,
             'offene_fakten' => array_values($openFacts),
             'offene_belege' => array_values($openEvidence),
         ];
+    }
+
+    /** Why the number gate does not run: the setting is off. */
+    public const GATE_OFF_SETTING = 'einstellung';
+    /** Why the number gate does not run: NumberDiff does not understand the language. */
+    public const GATE_OFF_LANGUAGE = 'sprache';
+    /** Why the number gate does not run: the source of the episode switched it off. */
+    public const GATE_OFF_SOURCE = 'quelle';
+
+    /**
+     * Why the hard number gate is off for this episode, or '' if it runs.
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function numberGateOffReason(array $episode): string
+    {
+        if (!\Sonoquill\Settings\Options::flag('number_gate')) {
+            return self::GATE_OFF_SETTING;
+        }
+        if (!NumberDiff::supports(\Sonoquill\Settings\Options::language())) {
+            return self::GATE_OFF_LANGUAGE;
+        }
+        if (!\Sonoquill\Source\Sources::usesNumberGate($episode)) {
+            return self::GATE_OFF_SOURCE;
+        }
+
+        return '';
+    }
+
+    /**
+     * The side of the number diff that holds the source figures.
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function numberSource(array $episode): string
+    {
+        // Context blocks are background, not a fact source. A source that
+        // writes source_text itself may have included them there.
+        $blocks = EpisodeRepository::decodeList($episode['source_blocks'] ?? null);
+        if ($blocks !== []) {
+            $document = \Sonoquill\Text\SourceDocument::fromArray($blocks);
+            if ($document->hasContext()) {
+                return $document->bodyText();
+            }
+        }
+
+        return (string) ($episode['source_text'] ?? '');
     }
 
     /**

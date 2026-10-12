@@ -60,7 +60,7 @@ final class PromptsPage
         }
 
         $language = isset($_GET['sprache']) ? sanitize_key(wp_unslash((string) $_GET['sprache'])) : Options::language();
-        if (!in_array($language, Prompts::LANGUAGES, true)) {
+        if (!in_array($language, Prompts::editableLanguages(), true)) {
             $language = Options::language();
         }
 
@@ -71,7 +71,7 @@ final class PromptsPage
         EpisodeActions::renderNotice();
 
         echo '<nav class="nav-tab-wrapper">';
-        foreach (Prompts::LANGUAGES as $lang) {
+        foreach (Prompts::editableLanguages() as $lang) {
             printf(
                 '<a class="nav-tab%s" href="%s">%s%s</a>',
                 $lang === $language ? ' nav-tab-active' : '',
@@ -121,7 +121,7 @@ final class PromptsPage
         EpisodeActions::guard(self::ACTION);
 
         $language = isset($_POST['sprache']) ? sanitize_key(wp_unslash((string) $_POST['sprache'])) : '';
-        if (!in_array($language, Prompts::LANGUAGES, true)) {
+        if (!in_array($language, Prompts::editableLanguages(), true)) {
             wp_die(esc_html__('Unknown language.', 'sonoquill'), '', ['response' => 400]);
         }
 

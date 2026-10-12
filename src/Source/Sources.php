@@ -69,6 +69,31 @@ final class Sources
         return self::$sources[$id] ?? self::$sources[self::FALLBACK];
     }
 
+    /**
+     * Does the source of this episode want the number gate? Sources that do
+     * not implement SourcePreferences: yes.
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function usesNumberGate(array $episode): bool
+    {
+        $source = self::forEpisode($episode);
+
+        return !$source instanceof SourcePreferences || $source->usesNumberGate($episode);
+    }
+
+    /**
+     * Batch preference of the source of this episode, null for "as configured".
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function prefersBatch(array $episode): ?bool
+    {
+        $source = self::forEpisode($episode);
+
+        return $source instanceof SourcePreferences ? $source->prefersBatch($episode) : null;
+    }
+
     /** For tests only: reset the registration. */
     public static function reset(): void
     {

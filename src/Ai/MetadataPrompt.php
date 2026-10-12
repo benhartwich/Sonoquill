@@ -34,7 +34,8 @@ final class MetadataPrompt
      */
     public static function user(array $sections): string
     {
-        $en = \Sonoquill\Settings\Options::language() === 'en';
+        // German wording for German podcasts, English for every other language.
+        $en = !\Sonoquill\Settings\Options::isGerman();
         $parts = [];
         foreach ($sections as $index => $section) {
             $parts[] = sprintf($en ? "### Section %d\n\n%s" : "### Abschnitt %d\n\n%s", $index + 1, trim($section));

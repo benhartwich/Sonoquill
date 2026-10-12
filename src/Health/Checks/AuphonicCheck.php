@@ -32,6 +32,10 @@ final class AuphonicCheck implements CheckInterface
 
     public function run(): Result
     {
+        if (\Sonoquill\Settings\Options::directProduction()) {
+            return Result::skip(__('Not needed: the production mode is "direct", the montage goes to Podlove without Auphonic.', 'sonoquill'));
+        }
+
         try {
             $token = Options::secret('auphonic_api_key');
         } catch (CryptoException $e) {

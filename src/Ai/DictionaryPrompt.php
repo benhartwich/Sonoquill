@@ -32,7 +32,8 @@ final class DictionaryPrompt
      */
     public static function user(array $candidates, array $existing): string
     {
-        $en = \Sonoquill\Settings\Options::language() === 'en';
+        // German wording for German podcasts, English for every other language.
+        $en = !\Sonoquill\Settings\Options::isGerman();
 
         return ($en ? "Already in the dictionary, do not add again:\n\n" : "Bereits im Wörterbuch, nicht noch einmal aufnehmen:\n\n")
             . ($existing === [] ? ($en ? '(nothing yet)' : '(noch nichts)') : implode(', ', $existing))

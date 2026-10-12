@@ -74,8 +74,26 @@ final class EpisodeRepository
     {
         global $wpdb;
 
+        // Status changes are announced centrally, whichever step makes them.
+        $old = null;
+        if (array_key_exists('status', $fields)) {
+            $before = self::find($id);
+            $old = $before !== null ? (string) ($before['status'] ?? '') : null;
+        }
+
         $fields['updated_at'] = current_time('mysql');
         $wpdb->update(Schema::episodesTable(), $fields, ['id' => $id]);
+
+        if ($old !== null && $old !== (string) $fields['status'] && function_exists('do_action')) {
+            /**
+             * Action: the status of an episode has changed.
+             *
+             * @param int    $id  Episode ID.
+             * @param string $old Previous status (EpisodeStatus constant).
+             * @param string $new New status.
+             */
+            do_action('sonoquill_status_changed', $id, $old, (string) $fields['status']);
+        }
     }
 
     /**
@@ -103,6 +121,7 @@ final class EpisodeRepository
 
         $wpdb->delete(Schema::segmentsTable(), ['episode_id' => $id]);
         $wpdb->delete(Schema::episodesTable(), ['id' => $id]);
+        delete_option(\Sonoquill\Notify\Notifier::TEXT_READY_OPTION . $id);
     }
 
     /**

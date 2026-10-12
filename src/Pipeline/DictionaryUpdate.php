@@ -51,7 +51,7 @@ final class DictionaryUpdate
         }
 
         try {
-            $client = AnthropicClient::fromSettings();
+            $client = AnthropicClient::fromSettings('woerterbuch');
             $response = \Sonoquill\Ai\BatchGate::complete(
                 $client,
                 $episodeId,

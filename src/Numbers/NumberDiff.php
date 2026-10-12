@@ -26,6 +26,18 @@ final class NumberDiff
     /** Largest relative deviation that still counts as a rounding. */
     private const ROUNDING_TOLERANCE = 0.1;
 
+    /** Languages whose spoken figures the extractors understand. */
+    public const LANGUAGES = ['de', 'en'];
+
+    /**
+     * Can the number gate check texts in this language? Accepts full codes
+     * ("de-at" counts as German).
+     */
+    public static function supports(string $language): bool
+    {
+        return in_array(explode('-', strtolower($language))[0], self::LANGUAGES, true);
+    }
+
     public static function compare(string $source, string $script, string $language = 'de'): DiffResult
     {
         $sourceValues = self::index($source, $language);

@@ -22,8 +22,9 @@ use Sonoquill\Support\RunLog;
  * anyone who clicks through an episode by hand is sitting in front of it anyway.
  *
  * Mail is sent via wp_mail, i.e. via WP Mail SMTP, like every other e-mail
- * of the website. Every mail contains the link to the episode view and nothing
- * that could trigger anything without logging in: approval happens in the backend.
+ * of the website. Every mail contains the link to the episode view. Only if
+ * the setting `mail_approval_links` is on, the text mail also carries a signed
+ * approval link (see ApprovalLink); otherwise approval happens in the backend.
  */
 final class Notifier
 {
@@ -42,20 +43,68 @@ final class Notifier
     public static function maybeTextReady(int $episodeId): void
     {
         $episode = EpisodeRepository::find($episodeId);
-        if ($episode === null || (int) ($episode['auto_chain'] ?? 0) !== 1 || !empty($episode['text_notified_at'])) {
+        if ($episode === null || !self::isTextReady($episode)) {
             return;
         }
 
+        if ((int) ($episode['auto_chain'] ?? 0) === 1 && empty($episode['text_notified_at'])) {
+            self::sendTextReady($episodeId, $episode);
+        }
+
+        // After the mail: an add-on that approves right away should not
+        // leave behind a mail that asks for an approval already given.
+        self::fireTextReady($episodeId, $episode);
+    }
+
+    /** Option prefix: hash of the script for which `sonoquill_text_ready` last fired. */
+    public const TEXT_READY_OPTION = 'aaspf_text_ready_';
+
+    /**
+     * Spoken script, fact check and title are all there and the text is waiting.
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function isTextReady(array $episode): bool
+    {
+        if (!in_array((string) ($episode['status'] ?? ''), [EpisodeStatus::AWAITING_TEXT, EpisodeStatus::GATE_FAILED], true)) {
+            return false;
+        }
+
+        return trim((string) ($episode['script_text'] ?? '')) !== ''
+            && ($episode['factcheck_json'] ?? null) !== null
+            && trim((string) ($episode['episode_title'] ?? '')) !== '';
+    }
+
+    /**
+     * Fires `sonoquill_text_ready` once per version of the spoken script —
+     * for every episode, not only those that run automatically.
+     *
+     * @param array<string,mixed> $episode
+     */
+    private static function fireTextReady(int $episodeId, array $episode): void
+    {
+        $hash = md5((string) $episode['script_text']);
+        if (get_option(self::TEXT_READY_OPTION . $episodeId) === $hash) {
+            return;
+        }
+        update_option(self::TEXT_READY_OPTION . $episodeId, $hash, false);
+
+        /**
+         * Action: the text of an episode is complete (spoken script, title,
+         * fact check) and waits for approval. Fires once per script version.
+         *
+         * @param int    $episodeId Episode ID.
+         * @param string $status    EpisodeStatus::AWAITING_TEXT, or GATE_FAILED if checks block approval.
+         */
+        do_action('sonoquill_text_ready', $episodeId, (string) $episode['status']);
+    }
+
+    /**
+     * @param array<string,mixed> $episode
+     */
+    private static function sendTextReady(int $episodeId, array $episode): void
+    {
         $status = (string) $episode['status'];
-        if (!in_array($status, [EpisodeStatus::AWAITING_TEXT, EpisodeStatus::GATE_FAILED], true)) {
-            return;
-        }
-
-        if (trim((string) ($episode['script_text'] ?? '')) === ''
-            || ($episode['factcheck_json'] ?? null) === null
-            || trim((string) ($episode['episode_title'] ?? '')) === '') {
-            return;
-        }
 
         $diff = EpisodeRepository::decodeMap($episode['diff_json'] ?? null);
         $facts = EpisodeRepository::decodeList($episode['factcheck_json'] ?? null);
@@ -74,13 +123,15 @@ final class Notifier
         $lines[] = '';
         /* translators: 1: number of characters in the speech script, 2: estimated spoken minutes */
         $lines[] = sprintf(__('Length: %1$s characters of speech script, about %2$d minutes spoken.', 'sonoquill'), number_format_i18n($chars), self::minutes($chars));
-        $lines[] = sprintf(
-            /* translators: 1: number of invented figures, 2: number of missing figures, 3: number of changed figures */
-            __('Number diff: %1$d invented, %2$d missing, %3$d changed.', 'sonoquill'),
-            count((array) ($diff['erfunden'] ?? [])),
-            count((array) ($diff['fehlt'] ?? [])),
-            count((array) ($diff['geaendert'] ?? []))
-        );
+        $lines[] = isset($diff['aus'])
+            ? __('Number diff: switched off for this episode — please check the figures yourself.', 'sonoquill')
+            : sprintf(
+                /* translators: 1: number of invented figures, 2: number of missing figures, 3: number of changed figures */
+                __('Number diff: %1$d invented, %2$d missing, %3$d changed.', 'sonoquill'),
+                count((array) ($diff['erfunden'] ?? [])),
+                count((array) ($diff['fehlt'] ?? [])),
+                count((array) ($diff['geaendert'] ?? []))
+            );
         /* translators: 1: total number of fact check findings, 2: number of severe findings */
         $lines[] = sprintf(__('Fact check: %1$d findings, %2$d of them severe.', 'sonoquill'), count($facts), $severe);
 
@@ -94,6 +145,10 @@ final class Notifier
             : __('The checks are clean. After approval everything runs on its own up to the Podlove draft; the audio approval comes as a separate mail.', 'sonoquill');
         $lines[] = '';
         $lines[] = __('To approve: ', 'sonoquill') . self::url($episodeId, 'skript');
+        if ($status === EpisodeStatus::AWAITING_TEXT && \Sonoquill\Admin\MailApproval::enabled()) {
+            $lines[] = __('Approve directly (asks once more, valid for 48 hours, void once the script is edited): ', 'sonoquill')
+                . \Sonoquill\Pipeline\ApprovalLink::url($episodeId, (string) $episode['script_text']);
+        }
 
         $subject = sprintf(
             /* translators: 1: approval status label, 2: short episode name, 3: version number, 4: estimated spoken minutes */
@@ -126,8 +181,11 @@ final class Notifier
         $version = self::version($episode, 'podlove', '/^Entwurf #\d+ angelegt/u');
 
         $lines = [
-            /* translators: %s: episode title */
-            sprintf(__('The episode “%s” has been mastered at Auphonic and is ready as a Podlove draft.', 'sonoquill'), (string) $episode['episode_title']),
+            \Sonoquill\Settings\Options::directProduction()
+                /* translators: %s: episode title */
+                ? sprintf(__('The episode “%s” has been assembled and is ready as a Podlove draft.', 'sonoquill'), (string) $episode['episode_title'])
+                /* translators: %s: episode title */
+                : sprintf(__('The episode “%s” has been mastered at Auphonic and is ready as a Podlove draft.', 'sonoquill'), (string) $episode['episode_title']),
         ];
         if ($warning !== '') {
             $lines[] = '';

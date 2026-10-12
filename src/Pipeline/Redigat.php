@@ -27,7 +27,7 @@ final class Redigat
         EpisodeRepository::update($episodeId, ['status' => EpisodeStatus::REDIGAT_RUNNING]);
 
         try {
-            $client = AnthropicClient::fromSettings();
+            $client = AnthropicClient::fromSettings('redigat');
             $system = PromptLoader::scriptSystemPrompt();
             $source = (string) ($episode['source_text'] ?? '');
 

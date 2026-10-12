@@ -27,6 +27,7 @@ final class Registry
             new \Sonoquill\Health\Checks\MontageCheck(),
             new FfmpegCheck(),
             new StorageCheck(),
+            new \Sonoquill\Health\Checks\LanguageCheck(),
         ];
 
         /** Filter: additional checks from add-ons (CheckInterface objects). */

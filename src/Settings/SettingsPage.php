@@ -144,12 +144,8 @@ final class SettingsPage
                     __('Leave empty to use the title from Podlove or the site name. Currently: %s', 'sonoquill'),
                     Options::podcastName()
                 )),
-                self::selectRow('podcast_language', __('Podcast language', 'sonoquill'), $values, [
-                    /* translators: %s: name of the site language (Deutsch or English) */
-                    ''   => sprintf(__('same as the site (%s)', 'sonoquill'), Options::language() === 'de' ? 'Deutsch' : 'English'),
-                    'de' => 'Deutsch',
-                    'en' => 'English',
-                ], __('Determines the bundled prompts and the number matching.', 'sonoquill')),
+                self::selectRow('podcast_language', __('Podcast language', 'sonoquill'), $values, self::languageChoices($values), __('Determines the prompts and the number matching. Bundled prompts exist for German and English; for other languages the English prompts apply until you save your own (Prompts page or prompt directory, subfolder per language code). The number check only understands German and English figures.', 'sonoquill')),
+                self::checkboxRow('number_gate', __('Number check', 'sonoquill'), $values, __('Compare every figure in the spoken script with the source and lock approval on deviations. Only works for German and English; for other languages it is always off.', 'sonoquill')),
                 self::textRow('podcast_host', __('Host', 'sonoquill'), $values, __('Whose voice reads as the clone. Appears in the AI notice ({host}) and in the greeting.', 'sonoquill')),
                 self::textRow('podcast_editor', __('Editor', 'sonoquill'), $values, __('Optional. Who writes the drafts; mentioned in the greeting ({editor}).', 'sonoquill')),
                 self::textRow('podcast_sign_off', __('Sign-off', 'sonoquill'), $values, __('Optional. A fixed farewell at the end of every episode ({sign_off}).', 'sonoquill')),
@@ -169,7 +165,11 @@ final class SettingsPage
                 self::textRow('elevenlabs_voice_id', __('Voice ID', 'sonoquill'), $values, __('ID of the voice clone.', 'sonoquill')),
                 self::textRow('elevenlabs_model_id', __('Model', 'sonoquill'), $values, __('Recommended: eleven_v4 — like eleven_v3 it applies phonetic (IPA) pronunciation rules in German too; eleven_multilingual_v2 ignores them.', 'sonoquill')),
                 self::textRow('elevenlabs_dictionary_id', __('Dictionary ID', 'sonoquill'), $values, __('There is exactly one dictionary, which grows through new versions. If it is created anew instead of extended, all existing bindings point to nothing.', 'sonoquill')),
-                self::textRow('elevenlabs_dictionary_version_id', __('Dictionary version', 'sonoquill'), $values, __('Required. Passed explicitly with every request so that later maintenance does not retroactively change the result of a rerun.', 'sonoquill')),
+                self::textRow('elevenlabs_dictionary_version_id', __('Dictionary version', 'sonoquill'), $values, __('Required. Passed explicitly with every request so that later maintenance does not retroactively change the result of a rerun.', 'sonoquill'))
+                    . (trim((string) ($values['elevenlabs_dictionary_id'] ?? '')) !== ''
+                        ? '<tr><th scope="row"></th><td><a class="button" href="' . esc_url(\Sonoquill\Admin\DictionaryController::pinUrl()) . '">' . esc_html__('Pin latest version', 'sonoquill') . '</a>'
+                            . '<p class="description">' . esc_html__('Asks ElevenLabs for the latest version of the dictionary and enters it here.', 'sonoquill') . '</p></td></tr>'
+                        : ''),
             ]
         );
 
@@ -180,6 +180,9 @@ final class SettingsPage
                 self::secretRow('anthropic_api_key', __('API key', 'sonoquill'), $values),
                 self::textRow('anthropic_model', __('Model', 'sonoquill'), $values, __('For extraction, script, editing, fact check, metadata and dictionary. Since 25.09.2026 claude-opus-5-5: better than Opus 5 and 20 % cheaper.', 'sonoquill')),
                 self::textRow('anthropic_model_research', __('Model for web research', 'sonoquill'), $values, __('Research is supplementary; claude-sonnet-5 costs less than half.', 'sonoquill')),
+                self::textRow('anthropic_model_factcheck', __('Model for the fact check', 'sonoquill'), $values, __('Optional. Empty: the main model.', 'sonoquill')),
+                self::textRow('anthropic_model_metadata', __('Model for the metadata', 'sonoquill'), $values, __('Optional. Empty: the main model. Title, descriptions and chapters also work well with a smaller model.', 'sonoquill')),
+                self::textRow('anthropic_model_dictionary', __('Model for dictionary suggestions', 'sonoquill'), $values, __('Optional. Empty: the main model.', 'sonoquill')),
                 self::checkboxRow('anthropic_batch', __('Batch API', 'sonoquill'), $values, __('Model calls at half price via the Batch API. The result usually arrives within an hour instead of immediately; the chain then continues on its own. Web research always runs directly.', 'sonoquill')),
                 self::textRow('anthropic_workspace_id', __('Workspace ID', 'sonoquill'), $values, __('Only needed if the key is identity-bound — then the API requires the anthropic-workspace-id header. Leave empty if the key is already bound to a workspace.', 'sonoquill')),
             ]
@@ -189,6 +192,10 @@ final class SettingsPage
             __('Auphonic', 'sonoquill'),
             __('Production of the final file.', 'sonoquill'),
             [
+                self::selectRow('production_mode', __('Production', 'sonoquill'), $values, [
+                    'auphonic' => __('Auphonic masters the episode', 'sonoquill'),
+                    'direct'   => __('Directly: the montage goes to Podlove as it is', 'sonoquill'),
+                ], __('Directly skips Auphonic: no loudness normalisation and, without ffmpeg, no opener, bridges or outro. Chapters and duration come from the montage.', 'sonoquill')),
                 self::secretRow('auphonic_api_key', __('API token', 'sonoquill'), $values),
                 self::textRow('auphonic_preset', __('Preset UUID', 'sonoquill'), $values, __('Speech recognition must be switched off in the preset — chapters and transcript come from the plugin.', 'sonoquill')),
             ]
@@ -228,6 +235,7 @@ final class SettingsPage
                     __('Separate multiple addresses with commas. Empty means: the admin address (%s). E-mails are sent when a text approval or an audio approval is pending and on errors — only for episodes that proceed automatically.', 'sonoquill'),
                     (string) get_option('admin_email')
                 )),
+                self::checkboxRow('mail_approval_links', __('Approve by e-mail', 'sonoquill'), $values, __('The “text awaiting approval” mail contains a signed link: it opens a confirmation page, one more click approves — without logging in. The link stops working after 48 hours or as soon as the script is edited. Only when the checks are clean. Anyone who can read the mail can approve.', 'sonoquill')),
             ]
         );
 
@@ -242,6 +250,11 @@ final class SettingsPage
             __('The assembly places the audio logo before the episode and the outro after it, in stereo, and shifts chapters and transcript accordingly. The files are uploaded below.', 'sonoquill'),
             [
                 self::checkboxRow('music_enabled', __('Use', 'sonoquill'), $values, __('Mix opener and outro into every new assembly.', 'sonoquill')),
+                self::selectRow('music_rotation', __('Variants', 'sonoquill'), $values, [
+                    'fixed'  => __('always the same (opener/outro, otherwise the first variant)', 'sonoquill'),
+                    'rotate' => __('in turn, episode by episode', 'sonoquill'),
+                    'random' => __('random, but fixed per episode', 'sonoquill'),
+                ], __('If several opener or outro files are uploaded below (variants 1 to 5).', 'sonoquill')),
             ]
         );
 
@@ -304,6 +317,14 @@ final class SettingsPage
             'opener' => __('Opener (audio logo)', 'sonoquill'),
             'outro'  => __('Outro', 'sonoquill'),
         ];
+        foreach (\Sonoquill\Audio\MusicBed::OPENER_SLOTS as $n => $slot) {
+            /* translators: %d: variant number */
+            $slots[$slot] = sprintf(__('Opener variant %d', 'sonoquill'), $n + 1);
+        }
+        foreach (\Sonoquill\Audio\MusicBed::OUTRO_SLOTS as $n => $slot) {
+            /* translators: %d: variant number */
+            $slots[$slot] = sprintf(__('Outro variant %d', 'sonoquill'), $n + 1);
+        }
         foreach (\Sonoquill\Audio\MusicBed::SEPARATOR_SLOTS as $n => $slot) {
             /* translators: %d: separator number */
             $slots[$slot] = sprintf(__('Separator %d', 'sonoquill'), $n + 1);
@@ -342,6 +363,41 @@ final class SettingsPage
         echo '<table class="form-table" role="presentation"><tbody>';
         echo wp_kses(implode('', $rows), \Sonoquill\Admin\Html::allowed());
         echo '</tbody></table>';
+    }
+
+    /**
+     * Choices for the podcast language. Any language code works; the list
+     * offers common ones, keeps a stored code that is not in it and can be
+     * extended with the filter `sonoquill_podcast_languages` (code => name).
+     *
+     * @param array<string,mixed> $values
+     *
+     * @return array<string,string>
+     */
+    private static function languageChoices(array $values): array
+    {
+        $choices = [
+            /* translators: %s: name of the site language (Deutsch or English) */
+            ''   => sprintf(__('same as the site (%s)', 'sonoquill'), str_starts_with(function_exists('get_locale') ? (string) get_locale() : 'en_US', 'de') ? 'Deutsch' : 'English'),
+            'de' => 'Deutsch',
+            'en' => 'English',
+            'cs' => 'Čeština',
+            'es' => 'Español',
+            'fr' => 'Français',
+            'it' => 'Italiano',
+            'nl' => 'Nederlands',
+            'pl' => 'Polski',
+            'pt' => 'Português',
+            'uk' => 'Українська',
+        ];
+        $choices = (array) apply_filters('sonoquill_podcast_languages', $choices);
+
+        $stored = Options::normalizeLanguage((string) ($values['podcast_language'] ?? ''));
+        if ($stored !== '' && !isset($choices[$stored])) {
+            $choices[$stored] = $stored;
+        }
+
+        return array_map('strval', $choices);
     }
 
     /**

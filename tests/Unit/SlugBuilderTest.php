@@ -78,4 +78,19 @@ final class SlugBuilderTest extends TestCase
         // "Mailand" ist kein Mai; ohne Monat bleibt nur die dateisichere Titelform.
         self::assertStringNotContainsString('Mai2026', SlugBuilder::fromTitle('Sternwarte bei Mailand 2026', 'Podcast'));
     }
+
+    public function testCyrillicTitlesAreTransliterated(): void
+    {
+        self::assertSame('BriefLystDliaOleny', SlugBuilder::fromTitle('Лист для Олени', 'Brief'));
+        self::assertSame('ShchoZhYeYizhak', SlugBuilder::asciify('що ж є їжак'));
+    }
+
+    public function testNothingUsableFallsBackToPrefixAndDate(): void
+    {
+        $time = gmmktime(12, 0, 0, 10, 12, 2026);
+
+        self::assertSame('Brief20261012', SlugBuilder::fromTitle('— ? —', 'Brief', $time));
+        self::assertSame('Brief20261012', SlugBuilder::fromTitle('', 'Brief', $time));
+    }
 }
+

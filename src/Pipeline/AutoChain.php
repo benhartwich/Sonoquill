@@ -19,6 +19,9 @@ use Sonoquill\Segments\SegmentRepository;
  * approval, segments and synthesis; after montage, the production. Audio
  * approval stays as it is; it is the second gate.
  *
+ * In the production mode "direct" the montage goes to Podlove without
+ * Auphonic; the same rule applies to the draft.
+ *
  * An episode is sent to Auphonic automatically exactly once. Whoever
  * re-records segments afterwards and re-runs the montage decides for
  * themselves when the new version is produced — otherwise every correction
@@ -61,7 +64,8 @@ final class AutoChain
     }
 
     /**
-     * After a successful montage: send to Auphonic the first time.
+     * After a successful montage: send to Auphonic the first time — or, in
+     * the production mode "direct", create the Podlove draft the first time.
      */
     public static function afterMontage(int $episodeId): void
     {
@@ -70,13 +74,24 @@ final class AutoChain
             return;
         }
 
-        if ((string) $episode['status'] !== EpisodeStatus::TEXT_APPROVED
-            || (string) ($episode['auphonic_production_uuid'] ?? '') !== '') {
+        $direct = \Sonoquill\Settings\Options::directProduction();
+        $alreadySent = $direct
+            ? (int) ($episode['podlove_post_id'] ?? 0) > 0
+            : (string) ($episode['auphonic_production_uuid'] ?? '') !== '';
+
+        if ((string) $episode['status'] !== EpisodeStatus::TEXT_APPROVED || $alreadySent) {
             return;
         }
 
         $summary = SegmentRepository::summary($episodeId);
         if ($summary['offen'] > 0 || $summary['beanstandet'] > 0) {
+            return;
+        }
+
+        if ($direct) {
+            Scheduler::queuePublish($episodeId);
+            EpisodeRepository::log($episodeId, 'automatik', __('Montage complete, the Podlove draft is being created directly from it (without Auphonic).', 'sonoquill'));
+
             return;
         }
 

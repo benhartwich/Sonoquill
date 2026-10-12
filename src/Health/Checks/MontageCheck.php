@@ -36,6 +36,12 @@ final class MontageCheck implements CheckInterface
 
         $music = MusicBed::active();
         $wantsMusic = $music['opener'] !== null || $music['outro'] !== null || $music['trenner'] !== [];
+        if ($wantsMusic && Options::directProduction()) {
+            return Result::warn(
+                __('PHP without Auphonic — opener, bridges and outro are left out. Install ffmpeg to mix them in directly.', 'sonoquill'),
+                $reason
+            );
+        }
         if ($wantsMusic && Options::get('auphonic_preset') === '') {
             return Result::warn(
                 __('PHP — but opener, bridges and outro need Auphonic, and no Auphonic preset is set.', 'sonoquill'),

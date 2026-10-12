@@ -201,32 +201,17 @@ final class EpisodeActions
         self::guard(self::ACTION_APPROVE);
         $id = self::episodeId();
 
-        $result = Gate::evaluate($id);
-        if ($result['blocking']) {
-            self::notice('error', __('Approval is locked as long as deviations are open.', 'sonoquill'));
+        if (!\Sonoquill\Pipeline\Approval::approveText($id, wp_get_current_user()->display_name)) {
+            self::notice('error', \Sonoquill\Pipeline\Approval::lastError());
             self::back($id);
         }
 
-        EpisodeRepository::update($id, [
-            'status'           => EpisodeStatus::TEXT_APPROVED,
-            'text_approved_at' => current_time('mysql'),
-        ]);
-
-        EpisodeRepository::log($id, 'freigabe', sprintf(
-            /* translators: %s: display name of the approving user */
-            __('Text approved by %s.', 'sonoquill'),
-            wp_get_current_user()->display_name
-        ));
-
-        try {
-            $automatic = \Sonoquill\Pipeline\AutoChain::afterTextApproval($id);
-        } catch (\Throwable $e) {
-            EpisodeRepository::log($id, 'automatik', __('Aborted: ', 'sonoquill') . $e->getMessage());
-            self::notice('warning', __('The text is approved, but the chain could not be triggered automatically: ', 'sonoquill') . $e->getMessage());
+        if (\Sonoquill\Pipeline\Approval::lastNotice() !== '') {
+            self::notice('warning', \Sonoquill\Pipeline\Approval::lastNotice());
             self::back($id);
         }
 
-        self::notice('success', $automatic !== null
+        self::notice('success', \Sonoquill\Pipeline\Approval::lastAutomatic() !== null
             ? __('The text is approved. Synthesis, montage and Auphonic now run on their own; when the Podlove draft is ready, an e-mail will be sent.', 'sonoquill')
             : __('The text is approved. Next up is the audio.', 'sonoquill'));
         self::back($id);
@@ -356,6 +341,13 @@ final class EpisodeActions
 
         if ($slug !== '') {
             EpisodeRepository::update($id, ['podlove_slug' => $slug]);
+        }
+
+        if (\Sonoquill\Settings\Options::directProduction()) {
+            PipelineScheduler::queuePublish($id);
+            EpisodeRepository::log($id, 'podlove', __('Podlove draft from the montage scheduled (without Auphonic).', 'sonoquill'));
+            self::notice('success', __('The Podlove draft is being created from the montage.', 'sonoquill'));
+            self::back($id);
         }
 
         PipelineScheduler::queueProduction($id);
@@ -498,7 +490,7 @@ final class EpisodeActions
             // then to its fixed place — the montage looks for opener.mp3 etc.
             require_once ABSPATH . 'wp-admin/includes/file.php';
             $handled = wp_handle_upload($_FILES[$slot], ['test_form' => false, 'mimes' => ['mp3' => 'audio/mpeg']]); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the upload array is validated by wp_handle_upload()
-            wp_mkdir_p(\Sonoquill\Audio\MusicBed::dir());
+            \Sonoquill\Audio\MusicBed::ensureDir();
             // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- move within the uploads directory
             if (!empty($handled['error']) || empty($handled['file']) || !@rename($handled['file'], \Sonoquill\Audio\MusicBed::file($slot))) {
                 self::notice('error', __('The file could not be stored.', 'sonoquill') . (!empty($handled['error']) ? ' ' . (string) $handled['error'] : ''));

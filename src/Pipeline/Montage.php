@@ -86,7 +86,7 @@ final class Montage
 
         // The separator lengthens the chapter pauses, so it has to be known
         // before the speech is assembled.
-        $music = MusicBed::active();
+        $music = MusicBed::active($episodeId);
         $separatorMs = [];
         foreach ($music['trenner'] as $file) {
             $separatorMs[] = (int) (\Sonoquill\Audio\AudioEngine::durationMs($file) ?? 0);
@@ -148,7 +148,10 @@ final class Montage
                 $laenge = $absatzMs;
                 if ((string) $next['kind'] === SegmentKind::CHAPTER_START) {
                     $variant = MusicBed::separatorFor($boundary++, count($separatorMs));
-                    if ($php) {
+                    if ($php && Options::directProduction()) {
+                        // No bridge will be inserted: a plain chapter pause.
+                        $laenge = $pauseMs;
+                    } elseif ($php) {
                         // The bridge is inserted later; leave a short gap around the insert point.
                         $laenge = $variant >= 0 ? MusicBed::INSERT_BEFORE_MS + MusicBed::INSERT_AFTER_MS : $pauseMs;
                         if ($variant >= 0) {
@@ -225,7 +228,12 @@ final class Montage
         $shift = 0;
         $musicNote = '';
         $montage = ['mode' => $php ? 'php' : 'ffmpeg'];
-        if ($php) {
+        if ($php && Options::directProduction()) {
+            // Nobody adds the music later: the speech assembly is the episode.
+            if ($music['opener'] !== null || $music['outro'] !== null || $music['trenner'] !== []) {
+                $musicNote = __(' Without music: the production mode is "direct" and there is no ffmpeg to mix it in.', 'sonoquill');
+            }
+        } elseif ($php) {
             // Auphonic adds the music. Remember what it has to do, and move
             // chapters and transcript to where they will be in the finished file.
             $plan = self::auphonicPlan($music, $separatorMs, $insertPlan, $real ?? [], $offset);
@@ -295,6 +303,9 @@ final class Montage
         // Without ffmpeg the mix is the speech alone; the episode will be as long as
         // speech plus the music Auphonic adds.
         $expected = $php ? $measured + (int) ($montage['added_ms'] ?? 0) : $measured;
+        if (Options::directProduction()) {
+            $montage['direct'] = true;
+        }
         $transcript = Transcript::webvtt($transcriptInput, (string) ($episode['episode_title'] ?? ''));
 
         EpisodeStorage::write(EpisodeStorage::mixRelativePath($episodeId, 'vtt'), $transcript);
@@ -320,6 +331,14 @@ final class Montage
                 : ($roomTone === null ? __(' No quiet passage found for room tone, pauses are digital silence.', 'sonoquill') : __(' Pauses filled with room tone.', 'sonoquill')))
             . $musicNote
         ));
+
+        /**
+         * Action: the montage of an episode is finished.
+         *
+         * @param int    $episodeId Episode ID.
+         * @param string $relative  Path of the mix relative to the storage directory (EpisodeStorage::absolutePath()).
+         */
+        do_action('sonoquill_montage_done', $episodeId, $relative);
 
         AutoChain::afterMontage($episodeId);
     }

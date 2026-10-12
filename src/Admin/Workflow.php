@@ -61,7 +61,9 @@ final class Workflow
         $raw[self::SKRIPT] = [__('Script', 'sonoquill'), trim((string) ($episode['script_text'] ?? '')) !== ''];
         $raw[self::TEXTFREIGABE] = [__('Text approval', 'sonoquill'), $afterApproval];
         $raw[self::AUDIO] = [__('Audio', 'sonoquill'), $mix !== '' && EpisodeStorage::exists($mix) && (int) $summary['offen'] === 0];
-        $raw[self::AUPHONIC] = [__('Auphonic', 'sonoquill'), (string) ($episode['auphonic_production_uuid'] ?? '') !== ''];
+        if (!\Sonoquill\Settings\Options::directProduction()) {
+            $raw[self::AUPHONIC] = [__('Auphonic', 'sonoquill'), (string) ($episode['auphonic_production_uuid'] ?? '') !== ''];
+        }
         $raw[self::PODLOVE] = [__('Podlove', 'sonoquill'), in_array($status, [EpisodeStatus::AWAITING_AUDIO, EpisodeStatus::DONE], true)];
         $raw[self::AUDIOFREIGABE] = [__('Audio approval', 'sonoquill'), $status === EpisodeStatus::DONE];
 

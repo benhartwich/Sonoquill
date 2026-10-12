@@ -6,7 +6,6 @@ namespace Sonoquill\Pipeline;
 use Sonoquill\Auphonic\AuphonicClient;
 use Sonoquill\Auphonic\ChapterFormat;
 use Sonoquill\Db\EpisodeRepository;
-use Sonoquill\Podlove\SlugBuilder;
 use Sonoquill\Rest\AuphonicWebhook;
 use Sonoquill\Storage\EpisodeStorage;
 
@@ -42,7 +41,7 @@ final class Production
 
         $slug = (string) ($episode['podlove_slug'] ?? '');
         if ($slug === '') {
-            $slug = SlugBuilder::fromTitle($title, \Sonoquill\Settings\Options::filePrefix());
+            $slug = \Sonoquill\Podlove\EpisodeDraft::slugFor($episode);
             EpisodeRepository::update($episodeId, ['podlove_slug' => $slug]);
         }
 

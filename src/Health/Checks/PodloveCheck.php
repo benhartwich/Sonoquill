@@ -73,10 +73,56 @@ final class PodloveCheck implements CheckInterface
             $details .= ' ' . __('No asset for WebVTT transcripts — transcripts are not linked.', 'sonoquill');
         }
 
+        $protection = self::feedProtectionWarning(self::protectedFeeds(), has_filter('podlove_pre_media_file_download') !== false);
+        if ($protection !== null) {
+            return $protection;
+        }
+
         return Result::ok(
             /* translators: %s: Podlove plugin version number */
             $version !== '' ? sprintf(__('Active (version %s).', 'sonoquill'), $version) : __('Active.', 'sonoquill'),
             trim($details)
+        );
+    }
+
+    /**
+     * Names of the Podlove feeds that are password-protected.
+     *
+     * @return list<string>
+     */
+    public static function protectedFeeds(): array
+    {
+        if (!class_exists('\\Podlove\\Model\\Feed') || !method_exists('\\Podlove\\Model\\Feed', 'all')) {
+            return [];
+        }
+
+        $names = [];
+        foreach ((array) \Podlove\Model\Feed::all() as $feed) {
+            if (is_object($feed) && !empty($feed->protected)) {
+                $names[] = (string) ($feed->name ?? $feed->slug ?? $feed->id ?? '?');
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * A protected feed only protects the feed: the media files stay
+     * reachable through Podlove's download redirects. Unless something hooks
+     * into `podlove_pre_media_file_download`, that is worth a warning.
+     *
+     * @param list<string> $protectedFeeds
+     */
+    public static function feedProtectionWarning(array $protectedFeeds, bool $hasDownloadFilter): ?Result
+    {
+        if ($protectedFeeds === [] || $hasDownloadFilter) {
+            return null;
+        }
+
+        return Result::warn(
+            /* translators: %s: comma-separated feed names */
+            sprintf(__('Protected feed (%s): the audio files are still publicly downloadable.', 'sonoquill'), implode(', ', $protectedFeeds)),
+            __('Feed protection only covers the feed. Podlove\'s download redirects /podlove/file/<id>/… and ?download_media_file=<id> hand out every media file without a password. To close them, check access in the filter podlove_pre_media_file_download (or block the URLs in the server configuration); also keep the media directory from being listed.', 'sonoquill')
         );
     }
 

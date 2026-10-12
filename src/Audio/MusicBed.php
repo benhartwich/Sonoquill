@@ -34,6 +34,17 @@ final class MusicBed
 {
     public const SLOTS = ['opener', 'outro'];
 
+    /**
+     * Variants of opener and outro. With the setting `music_rotation` on
+     * "rotate" or "random" one of the uploaded files is chosen per episode,
+     * the plain "opener"/"outro" slot included.
+     */
+    public const OPENER_SLOTS = ['opener-1', 'opener-2', 'opener-3', 'opener-4', 'opener-5'];
+    public const OUTRO_SLOTS = ['outro-1', 'outro-2', 'outro-3', 'outro-4', 'outro-5'];
+
+    /** Selection strategies for opener and outro variants. */
+    public const ROTATIONS = ['fixed', 'rotate', 'random'];
+
     /** Separator files; they rotate in this order. */
     public const SEPARATOR_SLOTS = ['trenner-1', 'trenner-2', 'trenner-3', 'trenner-4', 'trenner-5'];
 
@@ -42,7 +53,7 @@ final class MusicBed
      */
     public static function allSlots(): array
     {
-        return array_merge(self::SLOTS, self::SEPARATOR_SLOTS);
+        return array_merge(self::SLOTS, self::OPENER_SLOTS, self::OUTRO_SLOTS, self::SEPARATOR_SLOTS);
     }
 
     /** How long the opener fades out under the first sentence. */
@@ -94,6 +105,22 @@ final class MusicBed
         return \Sonoquill\Storage\EpisodeStorage::uploads()['dir'] . '/music';
     }
 
+    /**
+     * Creates the music folder with index files and an .htaccess against
+     * directory listings. The files themselves stay reachable, so that the
+     * settings page can play them.
+     */
+    public static function ensureDir(): bool
+    {
+        $dir = self::dir();
+        if (!is_dir($dir) && !wp_mkdir_p($dir)) {
+            return false;
+        }
+        \Sonoquill\Storage\EpisodeStorage::protectDirectory($dir, false);
+
+        return true;
+    }
+
     public static function file(string $slot): string
     {
         return self::dir() . '/' . $slot . '.mp3';
@@ -109,27 +136,100 @@ final class MusicBed
     /**
      * The files that go into the next assembly.
      *
+     * With an episode ID, opener and outro are chosen among their variants
+     * according to the setting `music_rotation`, and the filter
+     * `sonoquill_music_for_episode` can change the selection.
+     *
      * @return array{opener:?string,outro:?string,trenner:list<string>}
      */
-    public static function active(): array
+    public static function active(int $episodeId = 0): array
     {
         if (!\Sonoquill\Settings\Options::flag('music_enabled')) {
-            return ['opener' => null, 'outro' => null, 'trenner' => []];
-        }
+            $out = ['opener' => null, 'outro' => null, 'trenner' => []];
+        } else {
+            $strategy = \Sonoquill\Settings\Options::get('music_rotation');
 
-        $out = [];
-        foreach (self::SLOTS as $slot) {
-            $out[$slot] = is_readable(self::file($slot)) ? self::file($slot) : null;
-        }
+            $out = [
+                'opener' => self::pick(self::available(array_merge(['opener'], self::OPENER_SLOTS)), $strategy, $episodeId, 'opener'),
+                'outro'  => self::pick(self::available(array_merge(['outro'], self::OUTRO_SLOTS)), $strategy, $episodeId, 'outro'),
+            ];
 
-        $out['trenner'] = [];
-        foreach (self::SEPARATOR_SLOTS as $slot) {
-            if (is_readable(self::file($slot))) {
-                $out['trenner'][] = self::file($slot);
+            $out['trenner'] = [];
+            foreach (self::SEPARATOR_SLOTS as $slot) {
+                if (is_readable(self::file($slot))) {
+                    $out['trenner'][] = self::file($slot);
+                }
             }
         }
 
-        return $out;
+        if ($episodeId <= 0) {
+            return $out;
+        }
+
+        /**
+         * Filter: the music for one episode — absolute paths or null.
+         *
+         * @param array{opener:?string,outro:?string,trenner:list<string>} $out
+         * @param int                                                      $episodeId
+         */
+        $filtered = apply_filters('sonoquill_music_for_episode', $out, $episodeId);
+        if (!is_array($filtered)) {
+            return $out;
+        }
+
+        $file = static fn ($path): ?string => is_string($path) && $path !== '' && is_readable($path) ? $path : null;
+
+        return [
+            'opener'  => $file($filtered['opener'] ?? null),
+            'outro'   => $file($filtered['outro'] ?? null),
+            'trenner' => array_values(array_filter(array_map($file, (array) ($filtered['trenner'] ?? [])))),
+        ];
+    }
+
+    /**
+     * The readable files among the slots, in slot order.
+     *
+     * @param list<string> $slots
+     *
+     * @return list<string>
+     */
+    private static function available(array $slots): array
+    {
+        $files = [];
+        foreach ($slots as $slot) {
+            if (is_readable(self::file($slot))) {
+                $files[] = self::file($slot);
+            }
+        }
+
+        return $files;
+    }
+
+    /**
+     * Chooses one of the candidate files.
+     *
+     * fixed: the first one (the plain slot if uploaded — the behaviour
+     * before variants existed). rotate: in order, by episode ID. random:
+     * spread by a hash of the episode ID — the same episode always gets
+     * the same file, so a new montage does not change the sound.
+     *
+     * @param list<string> $candidates
+     */
+    public static function pick(array $candidates, string $strategy, int $episodeId, string $kind = ''): ?string
+    {
+        $count = count($candidates);
+        if ($count === 0) {
+            return null;
+        }
+        if ($count === 1 || $episodeId <= 0) {
+            return $candidates[0];
+        }
+
+        return match ($strategy) {
+            'rotate' => $candidates[($episodeId - 1) % $count],
+            'random' => $candidates[crc32($kind . ':' . $episodeId) % $count],
+            default  => $candidates[0],
+        };
     }
 
     /**
