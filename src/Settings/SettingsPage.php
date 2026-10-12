@@ -165,7 +165,11 @@ final class SettingsPage
                 self::textRow('elevenlabs_voice_id', __('Voice ID', 'sonoquill'), $values, __('ID of the voice clone.', 'sonoquill')),
                 self::textRow('elevenlabs_model_id', __('Model', 'sonoquill'), $values, __('Recommended: eleven_v4 — like eleven_v3 it applies phonetic (IPA) pronunciation rules in German too; eleven_multilingual_v2 ignores them.', 'sonoquill')),
                 self::textRow('elevenlabs_dictionary_id', __('Dictionary ID', 'sonoquill'), $values, __('There is exactly one dictionary, which grows through new versions. If it is created anew instead of extended, all existing bindings point to nothing.', 'sonoquill')),
-                self::textRow('elevenlabs_dictionary_version_id', __('Dictionary version', 'sonoquill'), $values, __('Required. Passed explicitly with every request so that later maintenance does not retroactively change the result of a rerun.', 'sonoquill')),
+                self::textRow('elevenlabs_dictionary_version_id', __('Dictionary version', 'sonoquill'), $values, __('Required. Passed explicitly with every request so that later maintenance does not retroactively change the result of a rerun.', 'sonoquill'))
+                    . (trim((string) ($values['elevenlabs_dictionary_id'] ?? '')) !== ''
+                        ? '<tr><th scope="row"></th><td><a class="button" href="' . esc_url(\Sonoquill\Admin\DictionaryController::pinUrl()) . '">' . esc_html__('Pin latest version', 'sonoquill') . '</a>'
+                            . '<p class="description">' . esc_html__('Asks ElevenLabs for the latest version of the dictionary and enters it here.', 'sonoquill') . '</p></td></tr>'
+                        : ''),
             ]
         );
 

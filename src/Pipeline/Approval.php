@@ -101,7 +101,7 @@ final class Approval
      */
     public static function blockers(): string
     {
-        return '';
+        return \Sonoquill\Voice\DictionaryPin::problem();
     }
 
     /** Why the last approveText() call did not approve. */
