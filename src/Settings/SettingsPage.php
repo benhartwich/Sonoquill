@@ -250,6 +250,11 @@ final class SettingsPage
             __('The assembly places the audio logo before the episode and the outro after it, in stereo, and shifts chapters and transcript accordingly. The files are uploaded below.', 'sonoquill'),
             [
                 self::checkboxRow('music_enabled', __('Use', 'sonoquill'), $values, __('Mix opener and outro into every new assembly.', 'sonoquill')),
+                self::selectRow('music_rotation', __('Variants', 'sonoquill'), $values, [
+                    'fixed'  => __('always the same (opener/outro, otherwise the first variant)', 'sonoquill'),
+                    'rotate' => __('in turn, episode by episode', 'sonoquill'),
+                    'random' => __('random, but fixed per episode', 'sonoquill'),
+                ], __('If several opener or outro files are uploaded below (variants 1 to 5).', 'sonoquill')),
             ]
         );
 
@@ -312,6 +317,14 @@ final class SettingsPage
             'opener' => __('Opener (audio logo)', 'sonoquill'),
             'outro'  => __('Outro', 'sonoquill'),
         ];
+        foreach (\Sonoquill\Audio\MusicBed::OPENER_SLOTS as $n => $slot) {
+            /* translators: %d: variant number */
+            $slots[$slot] = sprintf(__('Opener variant %d', 'sonoquill'), $n + 1);
+        }
+        foreach (\Sonoquill\Audio\MusicBed::OUTRO_SLOTS as $n => $slot) {
+            /* translators: %d: variant number */
+            $slots[$slot] = sprintf(__('Outro variant %d', 'sonoquill'), $n + 1);
+        }
         foreach (\Sonoquill\Audio\MusicBed::SEPARATOR_SLOTS as $n => $slot) {
             /* translators: %d: separator number */
             $slots[$slot] = sprintf(__('Separator %d', 'sonoquill'), $n + 1);

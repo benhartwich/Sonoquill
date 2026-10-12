@@ -86,7 +86,7 @@ final class Montage
 
         // The separator lengthens the chapter pauses, so it has to be known
         // before the speech is assembled.
-        $music = MusicBed::active();
+        $music = MusicBed::active($episodeId);
         $separatorMs = [];
         foreach ($music['trenner'] as $file) {
             $separatorMs[] = (int) (\Sonoquill\Audio\AudioEngine::durationMs($file) ?? 0);

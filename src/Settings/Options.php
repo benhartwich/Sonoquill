@@ -60,6 +60,8 @@ final class Options
             // are understood; for other languages it is switched off anyway.
             'number_gate'          => true,
             'music_enabled'        => false,
+            // Opener/outro variants: fixed, rotate or random (deterministic per episode).
+            'music_rotation'       => 'fixed',
             'anthropic_workspace_id' => '',
             'auphonic_api_key'     => '',
             'auphonic_preset'      => '',

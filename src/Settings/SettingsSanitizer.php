@@ -140,6 +140,11 @@ final class SettingsSanitizer
             }
         }
 
+        if (array_key_exists('music_rotation', $input)) {
+            $rotation = (string) $input['music_rotation'];
+            $out['music_rotation'] = in_array($rotation, \Sonoquill\Audio\MusicBed::ROTATIONS, true) ? $rotation : 'fixed';
+        }
+
         if (array_key_exists('production_mode', $input)) {
             $out['production_mode'] = (string) $input['production_mode'] === 'direct' ? 'direct' : 'auphonic';
         }
