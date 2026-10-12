@@ -162,7 +162,7 @@ final class Publish
 
             $slug = (string) ($episode['podlove_slug'] ?? '');
             if ($slug === '') {
-                $slug = \Sonoquill\Podlove\SlugBuilder::fromTitle($title, \Sonoquill\Settings\Options::filePrefix());
+                $slug = EpisodeDraft::slugFor($episode);
                 EpisodeRepository::update($episodeId, ['podlove_slug' => $slug]);
             }
 

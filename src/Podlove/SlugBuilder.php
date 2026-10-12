@@ -11,7 +11,13 @@ namespace Sonoquill\Podlove;
  * year in the title rather than from the whole title: the title is now
  * content-driven and changes completely every month.
  *
- * This class has no knowledge of WordPress and can be tested without WordPress.
+ * Titles in other scripts are transliterated (Cyrillic by a fixed table,
+ * anything else via intl if available). If nothing usable is left, the slug
+ * is the prefix plus the date — a daily episode then still gets a unique,
+ * readable file name.
+ *
+ * This class has no knowledge of WordPress (wp_date() is used when present)
+ * and can be tested without WordPress.
  */
 final class SlugBuilder
 {
@@ -24,7 +30,19 @@ final class SlugBuilder
         'june' => 'June', 'july' => 'July', 'october' => 'October', 'december' => 'December',
     ];
 
-    public static function fromTitle(string $title, string $prefix = 'Podcast'): string
+    /** Ukrainian national transliteration (2010), plus the Russian letters. */
+    private const CYRILLIC = [
+        'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'h', 'ґ' => 'g', 'д' => 'd', 'е' => 'e', 'є' => 'ie',
+        'ж' => 'zh', 'з' => 'z', 'и' => 'y', 'і' => 'i', 'ї' => 'i', 'й' => 'i', 'к' => 'k', 'л' => 'l',
+        'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u',
+        'ф' => 'f', 'х' => 'kh', 'ц' => 'ts', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ь' => '', 'ю' => 'iu',
+        'я' => 'ia', 'ы' => 'y', 'э' => 'e', 'ё' => 'e', 'ъ' => '', '’' => '', 'ʼ' => '',
+    ];
+
+    /**
+     * @param int|null $time Timestamp for the date fallback; default: now.
+     */
+    public static function fromTitle(string $title, string $prefix = 'Podcast', ?int $time = null): string
     {
         $month = '';
         foreach (self::MONTHS as $needle => $canonical) {
@@ -43,8 +61,51 @@ final class SlugBuilder
 
         // No recognizable month: build a file-safe form from the title.
         $fallback = self::asciify($title);
+        if ($fallback !== '') {
+            return $prefix . $fallback;
+        }
 
-        return $fallback === '' ? $prefix : $prefix . $fallback;
+        // Nothing usable in the title: prefix and date.
+        $time ??= time();
+        $date = function_exists('wp_date') ? (string) wp_date('Ymd', $time) : gmdate('Ymd', $time);
+
+        return $prefix . $date;
+    }
+
+    /**
+     * Latin letters for Cyrillic (and, with intl, other scripts).
+     */
+    public static function transliterate(string $text): string
+    {
+        // At the start of a word these letters are written differently: "Їжак" → "Yizhak".
+        $initial = ['є' => 'ye', 'ї' => 'yi', 'й' => 'y', 'ю' => 'yu', 'я' => 'ya'];
+        $text = (string) preg_replace_callback(
+            '/(?<!\p{L})([єїйюяЄЇЙЮЯ])/u',
+            static function (array $m) use ($initial): string {
+                $lower = mb_strtolower($m[1], 'UTF-8');
+
+                return $lower === $m[1] ? $initial[$lower] : ucfirst($initial[$lower]);
+            },
+            $text
+        );
+
+        $map = self::CYRILLIC;
+        foreach (self::CYRILLIC as $letter => $latin) {
+            $map[mb_strtoupper($letter, 'UTF-8')] = ucfirst($latin);
+        }
+        $text = strtr($text, $map);
+
+        if (preg_match('/[^\x00-\x7F]/', $text) === 1 && class_exists('\\Transliterator')) {
+            $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII');
+            if ($transliterator !== null) {
+                $converted = $transliterator->transliterate($text);
+                if (is_string($converted)) {
+                    $text = $converted;
+                }
+            }
+        }
+
+        return $text;
     }
 
     /**
@@ -69,6 +130,7 @@ final class SlugBuilder
             'ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss',
             'Ä' => 'Ae', 'Ö' => 'Oe', 'Ü' => 'Ue',
         ]);
+        $text = self::transliterate($text);
 
         $words = preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
         $parts = array_map(

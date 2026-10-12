@@ -74,10 +74,7 @@ final class EpisodeDraft
 
         $podlove = \Podlove\Model\Episode::find_or_create_by_post_id($postId);
 
-        $slug = (string) ($episode['podlove_slug'] ?? '');
-        if ($slug === '') {
-            $slug = SlugBuilder::fromTitle($title, \Sonoquill\Settings\Options::filePrefix());
-        }
+        $slug = self::slugFor($episode);
 
         $chapters = ChapterFormat::toText(EpisodeRepository::decodeList($episode['chapters'] ?? null));
         $duration = (int) ($episode['duration_ms'] ?? 0);
@@ -98,6 +95,35 @@ final class EpisodeDraft
         ]);
 
         return $postId;
+    }
+
+    /**
+     * The slug of an episode: the stored one, otherwise built from the title
+     * and passed through the filter `sonoquill_episode_slug`. The filter only
+     * runs when the slug is first generated — the slug is also the file name,
+     * and it must not change between Auphonic, the media file and Podlove.
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function slugFor(array $episode): string
+    {
+        $stored = (string) ($episode['podlove_slug'] ?? '');
+        if ($stored !== '') {
+            return $stored;
+        }
+
+        $slug = SlugBuilder::fromTitle(trim((string) ($episode['episode_title'] ?? '')), \Sonoquill\Settings\Options::filePrefix());
+
+        /**
+         * Filter: the slug (and file name) of a new episode.
+         *
+         * @param string              $slug    Built from the title, or prefix plus date.
+         * @param array<string,mixed> $episode The episode row.
+         */
+        $filtered = apply_filters('sonoquill_episode_slug', $slug, $episode);
+        $filtered = is_string($filtered) ? (preg_replace('/[^A-Za-z0-9_-]/', '', $filtered) ?? '') : '';
+
+        return $filtered !== '' ? mb_substr($filtered, 0, 191) : $slug;
     }
 
     /**
