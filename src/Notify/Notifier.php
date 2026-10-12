@@ -42,20 +42,68 @@ final class Notifier
     public static function maybeTextReady(int $episodeId): void
     {
         $episode = EpisodeRepository::find($episodeId);
-        if ($episode === null || (int) ($episode['auto_chain'] ?? 0) !== 1 || !empty($episode['text_notified_at'])) {
+        if ($episode === null || !self::isTextReady($episode)) {
             return;
         }
 
+        if ((int) ($episode['auto_chain'] ?? 0) === 1 && empty($episode['text_notified_at'])) {
+            self::sendTextReady($episodeId, $episode);
+        }
+
+        // After the mail: an add-on that approves right away should not
+        // leave behind a mail that asks for an approval already given.
+        self::fireTextReady($episodeId, $episode);
+    }
+
+    /** Option prefix: hash of the script for which `sonoquill_text_ready` last fired. */
+    public const TEXT_READY_OPTION = 'aaspf_text_ready_';
+
+    /**
+     * Spoken script, fact check and title are all there and the text is waiting.
+     *
+     * @param array<string,mixed> $episode
+     */
+    public static function isTextReady(array $episode): bool
+    {
+        if (!in_array((string) ($episode['status'] ?? ''), [EpisodeStatus::AWAITING_TEXT, EpisodeStatus::GATE_FAILED], true)) {
+            return false;
+        }
+
+        return trim((string) ($episode['script_text'] ?? '')) !== ''
+            && ($episode['factcheck_json'] ?? null) !== null
+            && trim((string) ($episode['episode_title'] ?? '')) !== '';
+    }
+
+    /**
+     * Fires `sonoquill_text_ready` once per version of the spoken script —
+     * for every episode, not only those that run automatically.
+     *
+     * @param array<string,mixed> $episode
+     */
+    private static function fireTextReady(int $episodeId, array $episode): void
+    {
+        $hash = md5((string) $episode['script_text']);
+        if (get_option(self::TEXT_READY_OPTION . $episodeId) === $hash) {
+            return;
+        }
+        update_option(self::TEXT_READY_OPTION . $episodeId, $hash, false);
+
+        /**
+         * Action: the text of an episode is complete (spoken script, title,
+         * fact check) and waits for approval. Fires once per script version.
+         *
+         * @param int    $episodeId Episode ID.
+         * @param string $status    EpisodeStatus::AWAITING_TEXT, or GATE_FAILED if checks block approval.
+         */
+        do_action('sonoquill_text_ready', $episodeId, (string) $episode['status']);
+    }
+
+    /**
+     * @param array<string,mixed> $episode
+     */
+    private static function sendTextReady(int $episodeId, array $episode): void
+    {
         $status = (string) $episode['status'];
-        if (!in_array($status, [EpisodeStatus::AWAITING_TEXT, EpisodeStatus::GATE_FAILED], true)) {
-            return;
-        }
-
-        if (trim((string) ($episode['script_text'] ?? '')) === ''
-            || ($episode['factcheck_json'] ?? null) === null
-            || trim((string) ($episode['episode_title'] ?? '')) === '') {
-            return;
-        }
 
         $diff = EpisodeRepository::decodeMap($episode['diff_json'] ?? null);
         $facts = EpisodeRepository::decodeList($episode['factcheck_json'] ?? null);

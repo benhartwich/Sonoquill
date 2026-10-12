@@ -321,6 +321,14 @@ final class Montage
             . $musicNote
         ));
 
+        /**
+         * Action: the montage of an episode is finished.
+         *
+         * @param int    $episodeId Episode ID.
+         * @param string $relative  Path of the mix relative to the storage directory (EpisodeStorage::absolutePath()).
+         */
+        do_action('sonoquill_montage_done', $episodeId, $relative);
+
         AutoChain::afterMontage($episodeId);
     }
 

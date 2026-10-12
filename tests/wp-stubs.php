@@ -28,6 +28,9 @@ namespace Sonoquill\Tests {
         /** @var list<array{0:mixed,1:string,2:string}> wp_mail() calls. */
         public static array $mails = [];
 
+        /** Base directory returned by wp_upload_dir(). */
+        public static string $uploads = '';
+
         public static function reset(): void
         {
             self::$options = [];
@@ -36,6 +39,7 @@ namespace Sonoquill\Tests {
             self::$requests = [];
             self::$http = null;
             self::$mails = [];
+            self::$uploads = sys_get_temp_dir() . '/sonoquill-uploads-' . getmypid();
             $GLOBALS['wpdb'] = new FakeWpdb();
         }
 
@@ -70,7 +74,7 @@ namespace Sonoquill\Tests {
 
         public function insert(string $table, array $data): int
         {
-            $id = (int) ($data['id'] ?? (count($this->tables[$table] ?? []) + 1));
+            $id = (int) ($data['id'] ?? (max(array_merge([0], array_keys($this->tables[$table] ?? []))) + 1));
             $data['id'] = $id;
             $this->tables[$table][$id] = $data;
             $this->insert_id = $id;
@@ -434,6 +438,12 @@ namespace {
         function is_email(string $email)
         {
             return filter_var($email, FILTER_VALIDATE_EMAIL) !== false ? $email : false;
+        }
+    }
+    if (!function_exists('wp_upload_dir')) {
+        function wp_upload_dir($time = null, bool $create = true): array
+        {
+            return ['basedir' => Wp::$uploads, 'baseurl' => 'https://example.test/wp-content/uploads'];
         }
     }
     if (!function_exists('wp_mkdir_p')) {
