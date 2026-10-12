@@ -46,4 +46,36 @@ final class PricingTest extends TestCase
         self::assertSame(0.0, $response->markBooked()->centsToBook());
         self::assertSame(100.0, $response->markBooked()->estimatedCents());
     }
+
+    public function testCurrentModelsHaveTheirOwnRates(): void
+    {
+        self::assertSame([2.0, 10.0], Pricing::rates('claude-sonnet-5-5'));
+        self::assertSame([0.1, 0.5], Pricing::rates('claude-haiku-5-5'));
+        self::assertSame([10.0, 50.0], Pricing::rates('claude-fable-5-1'));
+        self::assertTrue(Pricing::isKnown('claude-haiku-5-5'));
+    }
+
+    public function testUnknownModelUsesTheMostExpensiveRateAndWarns(): void
+    {
+        Pricing::reset();
+        $previous = ini_set('error_log', '/dev/null');
+        try {
+            self::assertFalse(Pricing::isKnown('gpt-something'));
+            self::assertSame([10.0, 50.0], Pricing::rates('gpt-something'));
+            self::assertSame(['gpt-something'], Pricing::warnings());
+        } finally {
+            ini_set('error_log', (string) $previous);
+        }
+    }
+
+    public function testRatesCanBeFiltered(): void
+    {
+        \Sonoquill\Tests\Wp::reset();
+        add_filter('sonoquill_model_rates', static fn (array $rates): array => ['claude-opus-6' => [3.0, 15.0]] + $rates);
+
+        self::assertSame([3.0, 15.0], Pricing::rates('claude-opus-6'));
+        self::assertSame([4.0, 20.0], Pricing::rates('claude-opus-5-5'));
+
+        \Sonoquill\Tests\Wp::reset();
+    }
 }
