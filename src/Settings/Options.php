@@ -60,6 +60,9 @@ final class Options
             'auphonic_api_key'     => '',
             'auphonic_preset'      => '',
             'auphonic_webhook_token' => '',
+            // 'auphonic': mastering at Auphonic (default). 'direct': the montage
+            // MP3 goes to Podlove as it is.
+            'production_mode'      => 'auphonic',
             'ai_disclosure_text'   => $german
                 ? 'Zur Entstehung dieser Folge: Der Text wurde mit Unterstützung eines Sprachmodells aufbereitet und wird von einer synthetischen Nachbildung der Stimme von {host} gelesen. Zahlen und Inhalte werden maschinell gegen die Vorlage geprüft, und online geht nur, was ein Mensch freigegeben hat.'
                 : 'About this episode: the text was prepared with the help of a language model and is read by a synthetic replica of the voice of {host}. Numbers and content are checked automatically against the source, and nothing goes online that a person has not approved.',
@@ -219,6 +222,14 @@ final class Options
             '{editor}'   => trim(self::get('podcast_editor')) !== '' ? trim(self::get('podcast_editor')) : '—',
             '{sign_off}' => trim(self::get('podcast_sign_off')) !== '' ? trim(self::get('podcast_sign_off')) : '—',
         ]);
+    }
+
+    /**
+     * Does the montage go to Podlove directly, without Auphonic?
+     */
+    public static function directProduction(): bool
+    {
+        return self::get('production_mode') === 'direct';
     }
 
     public static function flag(string $key): bool

@@ -13,8 +13,10 @@ use Sonoquill\Storage\EpisodeStorage;
 /**
  * Fetch the finished file and store the episode as a Podlove draft.
  *
- * Triggered by the Auphonic callback. The draft is never published —
- * that is the second human gate (audio approval).
+ * Triggered by the Auphonic callback — or, in the production mode
+ * "direct", right after the montage, with the montage MP3 as the finished
+ * file. The draft is never published — that is the second human gate
+ * (audio approval).
  */
 final class Publish
 {
@@ -22,6 +24,12 @@ final class Publish
     {
         $episode = EpisodeRepository::find($episodeId);
         if ($episode === null) {
+            return;
+        }
+
+        if (\Sonoquill\Settings\Options::directProduction()) {
+            self::runDirect($episodeId, $episode);
+
             return;
         }
 
@@ -123,6 +131,74 @@ final class Publish
             ));
 
             \Sonoquill\Notify\Notifier::audioReady($episodeId, $warning);
+        } catch (\Throwable $e) {
+            EpisodeRepository::log($episodeId, 'podlove', __('Failed: ', 'sonoquill') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Production mode "direct": the montage MP3 is the finished file.
+     * Duration and chapters were measured by the montage and are already
+     * stored in the episode.
+     *
+     * @param array<string,mixed> $episode
+     */
+    private static function runDirect(int $episodeId, array $episode): void
+    {
+        try {
+            if (in_array((string) $episode['status'], EpisodeStatus::BEFORE_TEXT_APPROVAL, true)) {
+                throw new \RuntimeException(__('The text has not been approved.', 'sonoquill'));
+            }
+
+            $mix = (string) ($episode['mixed_audio_path'] ?? '');
+            if ($mix === '' || !EpisodeStorage::exists($mix)) {
+                throw new \RuntimeException(__('There is no assembled mix.', 'sonoquill'));
+            }
+
+            $title = trim((string) ($episode['episode_title'] ?? ''));
+            if ($title === '') {
+                throw new \RuntimeException(__('The episode has no title.', 'sonoquill'));
+            }
+
+            $slug = (string) ($episode['podlove_slug'] ?? '');
+            if ($slug === '') {
+                $slug = \Sonoquill\Podlove\SlugBuilder::fromTitle($title, \Sonoquill\Settings\Options::filePrefix());
+                EpisodeRepository::update($episodeId, ['podlove_slug' => $slug]);
+            }
+
+            $audio = (string) file_get_contents(EpisodeStorage::absolutePath($mix));
+            $audioPath = MediaStore::write($slug, 'mp3', $audio);
+
+            // The measured length of the file is the truth; the stored one may
+            // still include music that Auphonic would have added.
+            $measured = \Sonoquill\Audio\AudioEngine::durationMs(EpisodeStorage::absolutePath($mix));
+            if ($measured !== null && $measured > 0) {
+                EpisodeRepository::update($episodeId, ['duration_ms' => $measured]);
+            }
+
+            $vtt = EpisodeStorage::mixRelativePath($episodeId, 'vtt');
+            $transcriptWritten = false;
+            if (EpisodeStorage::exists($vtt)) {
+                MediaStore::write($slug, 'vtt', (string) file_get_contents(EpisodeStorage::absolutePath($vtt)));
+                $transcriptWritten = true;
+            }
+
+            $postId = EpisodeDraft::upsert($episodeId);
+            $attached = EpisodeDraft::attachAssets($episodeId);
+
+            EpisodeRepository::update($episodeId, ['status' => EpisodeStatus::AWAITING_AUDIO]);
+
+            EpisodeRepository::log($episodeId, 'podlove', sprintf(
+                /* translators: 1: post ID, 2: file name, 3: file size, 4: transcript note, 5: list of linked assets */
+                __('Draft #%1$d created. File %2$s (%3$s)%4$s. Linked: %5$s.', 'sonoquill'),
+                $postId,
+                basename($audioPath),
+                size_format(strlen($audio)),
+                $transcriptWritten ? __(', transcript included', 'sonoquill') : __(', without transcript', 'sonoquill'),
+                $attached === [] ? __('nothing', 'sonoquill') : implode(', ', $attached)
+            ) . ' ' . __('Taken directly from the montage, without Auphonic.', 'sonoquill'));
+
+            \Sonoquill\Notify\Notifier::audioReady($episodeId);
         } catch (\Throwable $e) {
             EpisodeRepository::log($episodeId, 'podlove', __('Failed: ', 'sonoquill') . $e->getMessage());
         }

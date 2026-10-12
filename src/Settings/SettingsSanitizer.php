@@ -137,6 +137,10 @@ final class SettingsSanitizer
             }
         }
 
+        if (array_key_exists('production_mode', $input)) {
+            $out['production_mode'] = (string) $input['production_mode'] === 'direct' ? 'direct' : 'auphonic';
+        }
+
         // Any language code, normalised ("pt_BR" → "pt-br"); anything else means "same as the site".
         if (array_key_exists('podcast_language', $input)) {
             $out['podcast_language'] = Options::normalizeLanguage((string) $input['podcast_language']);

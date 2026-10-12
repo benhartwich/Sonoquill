@@ -185,6 +185,10 @@ final class SettingsPage
             __('Auphonic', 'sonoquill'),
             __('Production of the final file.', 'sonoquill'),
             [
+                self::selectRow('production_mode', __('Production', 'sonoquill'), $values, [
+                    'auphonic' => __('Auphonic masters the episode', 'sonoquill'),
+                    'direct'   => __('Directly: the montage goes to Podlove as it is', 'sonoquill'),
+                ], __('Directly skips Auphonic: no loudness normalisation and, without ffmpeg, no opener, bridges or outro. Chapters and duration come from the montage.', 'sonoquill')),
                 self::secretRow('auphonic_api_key', __('API token', 'sonoquill'), $values),
                 self::textRow('auphonic_preset', __('Preset UUID', 'sonoquill'), $values, __('Speech recognition must be switched off in the preset — chapters and transcript come from the plugin.', 'sonoquill')),
             ]

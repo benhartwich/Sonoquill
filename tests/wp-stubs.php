@@ -28,6 +28,9 @@ namespace Sonoquill\Tests {
         /** @var list<array{0:mixed,1:string,2:string}> wp_mail() calls. */
         public static array $mails = [];
 
+        /** @var list<array{0:string,1:array<int,mixed>}> Jobs passed to as_schedule_single_action(). */
+        public static array $scheduled = [];
+
         /** Base directory returned by wp_upload_dir(). */
         public static string $uploads = '';
 
@@ -39,6 +42,7 @@ namespace Sonoquill\Tests {
             self::$requests = [];
             self::$http = null;
             self::$mails = [];
+            self::$scheduled = [];
             self::$uploads = sys_get_temp_dir() . '/sonoquill-uploads-' . getmypid();
             $GLOBALS['wpdb'] = new FakeWpdb();
         }
@@ -480,6 +484,14 @@ namespace {
         function is_email(string $email)
         {
             return filter_var($email, FILTER_VALIDATE_EMAIL) !== false ? $email : false;
+        }
+    }
+    if (!function_exists('as_schedule_single_action')) {
+        function as_schedule_single_action(int $timestamp, string $hook, array $args = [], string $group = ''): int
+        {
+            Wp::$scheduled[] = [$hook, $args];
+
+            return count(Wp::$scheduled);
         }
     }
     if (!function_exists('wp_upload_dir')) {

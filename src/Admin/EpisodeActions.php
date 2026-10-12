@@ -343,6 +343,13 @@ final class EpisodeActions
             EpisodeRepository::update($id, ['podlove_slug' => $slug]);
         }
 
+        if (\Sonoquill\Settings\Options::directProduction()) {
+            PipelineScheduler::queuePublish($id);
+            EpisodeRepository::log($id, 'podlove', __('Podlove draft from the montage scheduled (without Auphonic).', 'sonoquill'));
+            self::notice('success', __('The Podlove draft is being created from the montage.', 'sonoquill'));
+            self::back($id);
+        }
+
         PipelineScheduler::queueProduction($id);
         EpisodeRepository::log($id, 'auphonic', __('Production scheduled.', 'sonoquill'));
 

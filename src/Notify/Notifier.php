@@ -181,8 +181,11 @@ final class Notifier
         $version = self::version($episode, 'podlove', '/^Entwurf #\d+ angelegt/u');
 
         $lines = [
-            /* translators: %s: episode title */
-            sprintf(__('The episode “%s” has been mastered at Auphonic and is ready as a Podlove draft.', 'sonoquill'), (string) $episode['episode_title']),
+            \Sonoquill\Settings\Options::directProduction()
+                /* translators: %s: episode title */
+                ? sprintf(__('The episode “%s” has been assembled and is ready as a Podlove draft.', 'sonoquill'), (string) $episode['episode_title'])
+                /* translators: %s: episode title */
+                : sprintf(__('The episode “%s” has been mastered at Auphonic and is ready as a Podlove draft.', 'sonoquill'), (string) $episode['episode_title']),
         ];
         if ($warning !== '') {
             $lines[] = '';
