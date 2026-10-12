@@ -135,6 +135,16 @@ final class Gate
      */
     public static function numberSource(array $episode): string
     {
+        // Context blocks are background, not a fact source. A source that
+        // writes source_text itself may have included them there.
+        $blocks = EpisodeRepository::decodeList($episode['source_blocks'] ?? null);
+        if ($blocks !== []) {
+            $document = \Sonoquill\Text\SourceDocument::fromArray($blocks);
+            if ($document->hasContext()) {
+                return $document->bodyText();
+            }
+        }
+
         return (string) ($episode['source_text'] ?? '');
     }
 

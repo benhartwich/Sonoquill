@@ -16,7 +16,7 @@ final class SourceDocument
     }
 
     /**
-     * The plain body text without headings.
+     * The plain body text without headings and context blocks.
      *
      * This is the side the number diff runs against.
      */
@@ -24,7 +24,7 @@ final class SourceDocument
     {
         $parts = [];
         foreach ($this->blocks as $block) {
-            if (!$block->isHeading()) {
+            if (!$block->isHeading() && !$block->isContext()) {
                 $parts[] = $block->text;
             }
         }
@@ -55,12 +55,40 @@ final class SourceDocument
     {
         $parts = [];
         foreach ($this->blocks as $block) {
+            if ($block->isContext()) {
+                // Marked so that the model can tell background from facts to retell.
+                $parts[] = "<context>\n" . $block->text . "\n</context>";
+                continue;
+            }
             $parts[] = $block->isHeading()
                 ? '## ' . $block->text
                 : $block->text;
         }
 
         return implode("\n\n", $parts);
+    }
+
+    /**
+     * The source as the fact check sees it: like forPrompt(), but without
+     * context blocks — they are background, not facts to be checked.
+     */
+    public function forFactCheck(): string
+    {
+        return (new self(array_values(array_filter(
+            $this->blocks,
+            static fn (SourceBlock $b): bool => !$b->isContext()
+        ))))->forPrompt();
+    }
+
+    public function hasContext(): bool
+    {
+        foreach ($this->blocks as $block) {
+            if ($block->isContext()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function characterCount(): int
