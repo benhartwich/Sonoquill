@@ -112,13 +112,46 @@ final class EpisodeStorage
             throw new \RuntimeException(sprintf(__('Directory could not be created: %s', 'sonoquill'), $base));
         }
 
-        foreach ([$base . '/index.php' => "<?php\n// Silence is golden.\n", $base . '/.htaccess' => self::HTACCESS] as $file => $content) {
+        self::protectDirectory($base, true);
+
+        return $base;
+    }
+
+    /**
+     * Writes the protection files into a directory, if they are missing:
+     * index.php and index.html against directory listings, and an
+     * .htaccess — denying all access, or only the listing ($denyAll false,
+     * for files that must stay playable in the browser).
+     */
+    public static function protectDirectory(string $dir, bool $denyAll): void
+    {
+        $files = [
+            $dir . '/index.php'  => "<?php\n// Silence is golden.\n",
+            $dir . '/index.html' => "<!DOCTYPE html><title></title>\n",
+            $dir . '/.htaccess'  => $denyAll ? self::HTACCESS : "Options -Indexes\n",
+        ];
+
+        foreach ($files as $file => $content) {
             if (!file_exists($file)) {
                 @file_put_contents($file, $content);
             }
         }
+    }
 
-        return $base;
+    /**
+     * Server configuration that blocks a directory, for the health check:
+     * nginx ignores .htaccess files.
+     */
+    public static function blockSnippets(string $urlPath, string $dir): string
+    {
+        $urlPath = '/' . trim($urlPath, '/') . '/';
+
+        return sprintf(
+            /* translators: 1: nginx configuration, 2: Apache configuration */
+            __('nginx: %1$s — Apache (if .htaccess files are not allowed): %2$s', 'sonoquill'),
+            'location ^~ ' . $urlPath . ' { deny all; }',
+            '<Directory "' . $dir . '"> Require all denied </Directory>'
+        );
     }
 
     /**

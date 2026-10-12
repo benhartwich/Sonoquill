@@ -258,6 +258,12 @@ namespace {
             return add_filter($hook, $callback, $priority, $args);
         }
     }
+    if (!function_exists('has_filter')) {
+        function has_filter(string $hook, $callback = false)
+        {
+            return !empty(Wp::$filters[$hook]);
+        }
+    }
     if (!function_exists('remove_all_filters')) {
         function remove_all_filters(string $hook): bool
         {

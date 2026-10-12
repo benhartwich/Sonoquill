@@ -490,7 +490,7 @@ final class EpisodeActions
             // then to its fixed place — the montage looks for opener.mp3 etc.
             require_once ABSPATH . 'wp-admin/includes/file.php';
             $handled = wp_handle_upload($_FILES[$slot], ['test_form' => false, 'mimes' => ['mp3' => 'audio/mpeg']]); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the upload array is validated by wp_handle_upload()
-            wp_mkdir_p(\Sonoquill\Audio\MusicBed::dir());
+            \Sonoquill\Audio\MusicBed::ensureDir();
             // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- move within the uploads directory
             if (!empty($handled['error']) || empty($handled['file']) || !@rename($handled['file'], \Sonoquill\Audio\MusicBed::file($slot))) {
                 self::notice('error', __('The file could not be stored.', 'sonoquill') . (!empty($handled['error']) ? ' ' . (string) $handled['error'] : ''));

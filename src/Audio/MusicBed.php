@@ -94,6 +94,22 @@ final class MusicBed
         return \Sonoquill\Storage\EpisodeStorage::uploads()['dir'] . '/music';
     }
 
+    /**
+     * Creates the music folder with index files and an .htaccess against
+     * directory listings. The files themselves stay reachable, so that the
+     * settings page can play them.
+     */
+    public static function ensureDir(): bool
+    {
+        $dir = self::dir();
+        if (!is_dir($dir) && !wp_mkdir_p($dir)) {
+            return false;
+        }
+        \Sonoquill\Storage\EpisodeStorage::protectDirectory($dir, false);
+
+        return true;
+    }
+
     public static function file(string $slot): string
     {
         return self::dir() . '/' . $slot . '.mp3';
