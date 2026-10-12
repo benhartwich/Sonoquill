@@ -4137,3 +4137,194 @@ msgstr "ElevenLabs antwortet mit HTTP %1$d. %2$s"
 #: src/Voice/VoiceChanger.php:142
 msgid "The response contains no audio."
 msgstr "Die Antwort enthält kein Audio."
+
+#, php-format
+msgid "Dictionary version %s pinned."
+msgstr "Wörterbuchversion %s fixiert."
+
+msgid "Podlove draft from the montage scheduled (without Auphonic)."
+msgstr "Podlove-Entwurf aus der Montage eingeplant (ohne Auphonic)."
+
+msgid "The Podlove draft is being created from the montage."
+msgstr "Der Podlove-Entwurf wird aus der Montage angelegt."
+
+msgid "Approval by e-mail link is switched off."
+msgstr "Die Freigabe per E-Mail-Link ist ausgeschaltet."
+
+msgid "This approval link is invalid."
+msgstr "Dieser Freigabelink ist ungültig."
+
+msgid "e-mail link"
+msgstr "E-Mail-Link"
+
+msgid "The text is approved. Everything else runs on its own; the audio approval comes as a separate mail."
+msgstr "Der Text ist freigegeben. Alles Weitere läuft von selbst; die Audiofreigabe kommt als eigene Mail."
+
+#, php-format
+msgid "Spoken script with %s characters. Approving starts the audio production."
+msgstr "Sprechskript mit %s Zeichen. Die Freigabe startet die Audioproduktion."
+
+msgid "Read the script in the backend first"
+msgstr "Skript zuerst im Backend lesen"
+
+msgid "Not needed: the production mode is \"direct\", the montage goes to Podlove without Auphonic."
+msgstr "Nicht nötig: Der Produktionsmodus ist „direkt“, die Montage geht ohne Auphonic zu Podlove."
+
+msgid "Text approval is blocked until a version is pinned — use “Pin latest version” in the settings."
+msgstr "Die Textfreigabe ist gesperrt, bis eine Version fixiert ist — in den Einstellungen mit „Neueste Version fixieren“."
+
+msgid "Language and number check"
+msgstr "Sprache und Zahlenabgleich"
+
+#, php-format
+msgid "Podcast language \"%s\": the number check is off."
+msgstr "Podcastsprache „%s“: Der Zahlenabgleich ist aus."
+
+msgid "The number check only understands German and English figures; for this language it would report every figure as missing. Fact check and script checks still run — review the figures yourself before approving."
+msgstr "Der Zahlenabgleich versteht nur deutsche und englische Zahlen; in dieser Sprache würde er jede Zahl als fehlend melden. Faktenprüfung und Skriptprüfung laufen weiter — prüfe die Zahlen vor der Freigabe selbst."
+
+msgid "The number check is switched off in the settings."
+msgstr "Der Zahlenabgleich ist in den Einstellungen ausgeschaltet."
+
+msgid "Figures in the spoken script are not compared with the source. Fact check and script checks still run."
+msgstr "Zahlen im Sprechskript werden nicht mit der Vorlage verglichen. Faktenprüfung und Skriptprüfung laufen weiter."
+
+#, php-format
+msgid "Podcast language \"%s\", number check active."
+msgstr "Podcastsprache „%s“, Zahlenabgleich aktiv."
+
+#, php-format
+msgid "No own prompts for %1$s yet — the English ones apply and ask the model to write in English unless you adapt them. Save versions for \"%2$s\" on the Prompts page or in the prompt directory."
+msgstr "Noch keine eigenen Prompts für %1$s — es gelten die englischen, und die lassen das Modell Englisch schreiben, solange du sie nicht anpasst. Lege Fassungen für „%2$s“ auf der Seite Prompts oder im Prompt-Verzeichnis ab."
+
+msgid "PHP without Auphonic — opener, bridges and outro are left out. Install ffmpeg to mix them in directly."
+msgstr "PHP ohne Auphonic — Opener, Brücken und Outro entfallen. Mit ffmpeg werden sie direkt eingemischt."
+
+#, php-format
+msgid "Protected feed (%s): the audio files are still publicly downloadable."
+msgstr "Geschützter Feed (%s): Die Audiodateien sind trotzdem öffentlich abrufbar."
+
+msgid "Feed protection only covers the feed. Podlove's download redirects /podlove/file/<id>/… and ?download_media_file=<id> hand out every media file without a password. To close them, check access in the filter podlove_pre_media_file_download (or block the URLs in the server configuration); also keep the media directory from being listed."
+msgstr "Der Feedschutz schützt nur den Feed. Podloves Download-Weiterleitungen /podlove/file/<id>/… und ?download_media_file=<id> geben jede Mediendatei ohne Passwort heraus. Um sie zu schließen, prüfe den Zugriff im Filter podlove_pre_media_file_download (oder sperre die Adressen in der Serverkonfiguration); verhindere außerdem, dass das Medienverzeichnis aufgelistet wird."
+
+msgid "The music files (opener, outro, separators) can be downloaded from the web — the settings page plays them from there. To close the folder anyway (the players in the settings then stay silent): "
+msgstr "Die Musikdateien (Opener, Outro, Trenner) sind aus dem Web abrufbar — die Einstellungsseite spielt sie von dort ab. Um den Ordner trotzdem zu schließen (die Player in den Einstellungen bleiben dann stumm): "
+
+msgid "Number diff: switched off for this episode — please check the figures yourself."
+msgstr "Zahlenabgleich: für diese Folge ausgeschaltet — bitte die Zahlen selbst prüfen."
+
+msgid "Approve directly (asks once more, valid for 48 hours, void once the script is edited): "
+msgstr "Direkt freigeben (fragt noch einmal nach, 48 Stunden gültig, ungültig sobald das Skript bearbeitet wird): "
+
+#, php-format
+msgid "The episode “%s” has been assembled and is ready as a Podlove draft."
+msgstr "Die Folge „%s“ ist montiert und liegt als Podlove-Entwurf bereit."
+
+msgid "The text of this episode has already been approved."
+msgstr "Der Text dieser Folge ist bereits freigegeben."
+
+msgid "The episode has no spoken script yet."
+msgstr "Die Folge hat noch kein Sprechskript."
+
+msgid "The open deviations were deliberately overridden."
+msgstr "Die offenen Abweichungen wurden bewusst übergangen."
+
+msgid "This approval link has expired. Please approve in the backend."
+msgstr "Dieser Freigabelink ist abgelaufen. Bitte im Backend freigeben."
+
+msgid "The spoken script has changed since this mail was sent. Please review it again in the backend."
+msgstr "Das Sprechskript hat sich seit dieser Mail geändert. Bitte im Backend noch einmal prüfen."
+
+msgid "Montage complete, the Podlove draft is being created directly from it (without Auphonic)."
+msgstr "Montage fertig, der Podlove-Entwurf wird direkt daraus angelegt (ohne Auphonic)."
+
+msgid " Without music: the production mode is \"direct\" and there is no ffmpeg to mix it in."
+msgstr " Ohne Musik: Der Produktionsmodus ist „direkt“, und ohne ffmpeg kann sie nicht eingemischt werden."
+
+msgid "The text has not been approved."
+msgstr "Der Text ist nicht freigegeben."
+
+msgid "There is no assembled mix."
+msgstr "Es gibt keine fertige Montage."
+
+msgid "Taken directly from the montage, without Auphonic."
+msgstr "Direkt aus der Montage übernommen, ohne Auphonic."
+
+msgid "Determines the prompts and the number matching. Bundled prompts exist for German and English; for other languages the English prompts apply until you save your own (Prompts page or prompt directory, subfolder per language code). The number check only understands German and English figures."
+msgstr "Bestimmt die Prompts und den Zahlenabgleich. Mitgelieferte Prompts gibt es für Deutsch und Englisch; für andere Sprachen gelten die englischen, bis du eigene speicherst (Seite Prompts oder Prompt-Verzeichnis, Unterordner je Sprachcode). Der Zahlenabgleich versteht nur deutsche und englische Zahlen."
+
+msgid "Number check"
+msgstr "Zahlenabgleich"
+
+msgid "Compare every figure in the spoken script with the source and lock approval on deviations. Only works for German and English; for other languages it is always off."
+msgstr "Jede Zahl im Sprechskript mit der Vorlage vergleichen und die Freigabe bei Abweichungen sperren. Funktioniert nur für Deutsch und Englisch; für andere Sprachen ist er immer aus."
+
+msgid "Pin latest version"
+msgstr "Neueste Version fixieren"
+
+msgid "Asks ElevenLabs for the latest version of the dictionary and enters it here."
+msgstr "Fragt ElevenLabs nach der neuesten Version des Wörterbuchs und trägt sie hier ein."
+
+msgid "Model for the fact check"
+msgstr "Modell für die Faktenprüfung"
+
+msgid "Optional. Empty: the main model."
+msgstr "Optional. Leer: das Hauptmodell."
+
+msgid "Model for the metadata"
+msgstr "Modell für die Metadaten"
+
+msgid "Optional. Empty: the main model. Title, descriptions and chapters also work well with a smaller model."
+msgstr "Optional. Leer: das Hauptmodell. Titel, Beschreibungen und Kapitel gelingen auch mit einem kleineren Modell."
+
+msgid "Model for dictionary suggestions"
+msgstr "Modell für Wörterbuchvorschläge"
+
+msgid "Auphonic masters the episode"
+msgstr "Auphonic mastert die Folge"
+
+msgid "Directly: the montage goes to Podlove as it is"
+msgstr "Direkt: Die Montage geht unverändert zu Podlove"
+
+msgid "Directly skips Auphonic: no loudness normalisation and, without ffmpeg, no opener, bridges or outro. Chapters and duration come from the montage."
+msgstr "Direkt überspringt Auphonic: keine Lautheitsnormalisierung und ohne ffmpeg kein Opener, keine Brücken, kein Outro. Kapitel und Dauer kommen aus der Montage."
+
+msgid "Approve by e-mail"
+msgstr "Freigabe per E-Mail"
+
+msgid "The “text awaiting approval” mail contains a signed link: it opens a confirmation page, one more click approves — without logging in. The link stops working after 48 hours or as soon as the script is edited. Only when the checks are clean. Anyone who can read the mail can approve."
+msgstr "Die Mail „Text wartet auf Freigabe“ enthält einen signierten Link: Er öffnet eine Bestätigungsseite, ein weiterer Klick gibt frei — ohne Anmeldung. Der Link verfällt nach 48 Stunden oder sobald das Skript bearbeitet wird. Nur wenn die Prüfungen sauber sind. Wer die Mail lesen kann, kann freigeben."
+
+msgid "Variants"
+msgstr "Varianten"
+
+msgid "always the same (opener/outro, otherwise the first variant)"
+msgstr "immer dieselbe (Opener/Outro, sonst die erste Variante)"
+
+msgid "in turn, episode by episode"
+msgstr "reihum, Folge für Folge"
+
+msgid "random, but fixed per episode"
+msgstr "zufällig, aber fest je Folge"
+
+msgid "If several opener or outro files are uploaded below (variants 1 to 5)."
+msgstr "Wenn unten mehrere Opener- oder Outro-Dateien hochgeladen sind (Varianten 1 bis 5)."
+
+#, php-format
+msgid "Opener variant %d"
+msgstr "Opener-Variante %d"
+
+#, php-format
+msgid "Outro variant %d"
+msgstr "Outro-Variante %d"
+
+#, php-format
+msgid "nginx: %1$s — Apache (if .htaccess files are not allowed): %2$s"
+msgstr "nginx: %1$s — Apache (falls .htaccess-Dateien nicht erlaubt sind): %2$s"
+
+msgid "The pronunciation dictionary is entered without a version, so speech synthesis would fail after the approval. Pin a version in the settings (“Pin latest version” next to the dictionary version) or remove the dictionary ID, then approve."
+msgstr "Das Aussprachewörterbuch ist ohne Version eingetragen, die Sprachsynthese würde nach der Freigabe scheitern. Fixiere in den Einstellungen eine Version („Neueste Version fixieren“ neben der Wörterbuchversion) oder entferne die Wörterbuch-ID, dann freigeben."
+
+#, php-format
+msgid "ElevenLabs did not report a latest version (HTTP %d)."
+msgstr "ElevenLabs meldet keine neueste Version (HTTP %d)."
