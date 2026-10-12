@@ -184,6 +184,48 @@ namespace {
         define('AASPF_PLUGIN_DIR', dirname(__DIR__) . '/');
     }
 
+    if (!class_exists('WpDieException')) {
+        /** Thrown by the wp_die() stub so that tests can inspect the page. */
+        class WpDieException extends \RuntimeException
+        {
+            public function __construct(public string $html, public int $status)
+            {
+                parent::__construct(strip_tags($html), $status);
+            }
+        }
+    }
+
+    if (!function_exists('wp_die')) {
+        function wp_die($message = '', $title = '', $args = []): void
+        {
+            throw new WpDieException((string) $message, (int) ($args['response'] ?? 500));
+        }
+    }
+    if (!function_exists('wp_unslash')) {
+        function wp_unslash($value)
+        {
+            return $value;
+        }
+    }
+    if (!function_exists('absint')) {
+        function absint($value): int
+        {
+            return abs((int) $value);
+        }
+    }
+    if (!function_exists('sanitize_key')) {
+        function sanitize_key(string $key): string
+        {
+            return preg_replace('/[^a-z0-9_\-]/', '', strtolower($key)) ?? '';
+        }
+    }
+    if (!function_exists('sanitize_text_field')) {
+        function sanitize_text_field(string $text): string
+        {
+            return trim(strip_tags($text));
+        }
+    }
+
     if (!class_exists('WP_Error')) {
         class WP_Error
         {

@@ -67,6 +67,8 @@ final class Options
                 ? 'Noch ein Hinweis in eigener Sache: Diese Folge ist mit Unterstützung künstlicher Intelligenz entstanden, und die Stimme, die ihr hört, ist eine synthetische Nachbildung meiner eigenen. Bevor eine Folge online geht, prüfe ich Text und Ton selbst.'
                 : 'One more note: this episode was created with the help of artificial intelligence, and the voice you are hearing is a synthetic replica of my own. Before an episode goes online, I check the text and the audio myself.',
             'notify_email'         => '',
+            // One-click approval link in the "text awaiting approval" mail. Opt-in.
+            'mail_approval_links'  => false,
             'prompt_dir'           => '',
             'voice_stability'      => '0.5',
             'voice_similarity'     => '0.75',

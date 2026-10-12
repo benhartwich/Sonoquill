@@ -22,8 +22,9 @@ use Sonoquill\Support\RunLog;
  * anyone who clicks through an episode by hand is sitting in front of it anyway.
  *
  * Mail is sent via wp_mail, i.e. via WP Mail SMTP, like every other e-mail
- * of the website. Every mail contains the link to the episode view and nothing
- * that could trigger anything without logging in: approval happens in the backend.
+ * of the website. Every mail contains the link to the episode view. Only if
+ * the setting `mail_approval_links` is on, the text mail also carries a signed
+ * approval link (see ApprovalLink); otherwise approval happens in the backend.
  */
 final class Notifier
 {
@@ -144,6 +145,10 @@ final class Notifier
             : __('The checks are clean. After approval everything runs on its own up to the Podlove draft; the audio approval comes as a separate mail.', 'sonoquill');
         $lines[] = '';
         $lines[] = __('To approve: ', 'sonoquill') . self::url($episodeId, 'skript');
+        if ($status === EpisodeStatus::AWAITING_TEXT && \Sonoquill\Admin\MailApproval::enabled()) {
+            $lines[] = __('Approve directly (asks once more, valid for 48 hours, void once the script is edited): ', 'sonoquill')
+                . \Sonoquill\Pipeline\ApprovalLink::url($episodeId, (string) $episode['script_text']);
+        }
 
         $subject = sprintf(
             /* translators: 1: approval status label, 2: short episode name, 3: version number, 4: estimated spoken minutes */

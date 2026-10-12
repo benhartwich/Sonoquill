@@ -201,32 +201,17 @@ final class EpisodeActions
         self::guard(self::ACTION_APPROVE);
         $id = self::episodeId();
 
-        $result = Gate::evaluate($id);
-        if ($result['blocking']) {
-            self::notice('error', __('Approval is locked as long as deviations are open.', 'sonoquill'));
+        if (!\Sonoquill\Pipeline\Approval::approveText($id, wp_get_current_user()->display_name)) {
+            self::notice('error', \Sonoquill\Pipeline\Approval::lastError());
             self::back($id);
         }
 
-        EpisodeRepository::update($id, [
-            'status'           => EpisodeStatus::TEXT_APPROVED,
-            'text_approved_at' => current_time('mysql'),
-        ]);
-
-        EpisodeRepository::log($id, 'freigabe', sprintf(
-            /* translators: %s: display name of the approving user */
-            __('Text approved by %s.', 'sonoquill'),
-            wp_get_current_user()->display_name
-        ));
-
-        try {
-            $automatic = \Sonoquill\Pipeline\AutoChain::afterTextApproval($id);
-        } catch (\Throwable $e) {
-            EpisodeRepository::log($id, 'automatik', __('Aborted: ', 'sonoquill') . $e->getMessage());
-            self::notice('warning', __('The text is approved, but the chain could not be triggered automatically: ', 'sonoquill') . $e->getMessage());
+        if (\Sonoquill\Pipeline\Approval::lastNotice() !== '') {
+            self::notice('warning', \Sonoquill\Pipeline\Approval::lastNotice());
             self::back($id);
         }
 
-        self::notice('success', $automatic !== null
+        self::notice('success', \Sonoquill\Pipeline\Approval::lastAutomatic() !== null
             ? __('The text is approved. Synthesis, montage and Auphonic now run on their own; when the Podlove draft is ready, an e-mail will be sent.', 'sonoquill')
             : __('The text is approved. Next up is the audio.', 'sonoquill'));
         self::back($id);

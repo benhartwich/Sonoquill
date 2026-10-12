@@ -224,6 +224,7 @@ final class SettingsPage
                     __('Separate multiple addresses with commas. Empty means: the admin address (%s). E-mails are sent when a text approval or an audio approval is pending and on errors — only for episodes that proceed automatically.', 'sonoquill'),
                     (string) get_option('admin_email')
                 )),
+                self::checkboxRow('mail_approval_links', __('Approve by e-mail', 'sonoquill'), $values, __('The “text awaiting approval” mail contains a signed link: it opens a confirmation page, one more click approves — without logging in. The link stops working after 48 hours or as soon as the script is edited. Only when the checks are clean. Anyone who can read the mail can approve.', 'sonoquill')),
             ]
         );
 

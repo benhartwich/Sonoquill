@@ -32,6 +32,7 @@ final class SettingsSanitizer
         'anthropic_batch',
         'music_enabled',
         'number_gate',
+        'mail_approval_links',
     ];
 
     /** Fields that are stored in plain text. */

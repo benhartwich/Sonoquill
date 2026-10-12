@@ -50,6 +50,8 @@ final class Plugin
         Scheduler::register();
         PipelineScheduler::register();
         \Sonoquill\Rest\AuphonicWebhook::register();
+        // The approval link from the mail works without being logged in (admin-post nopriv).
+        \Sonoquill\Admin\MailApproval::register();
         // Translations everywhere, not only in the admin: mails and run-log
         // entries are written by background jobs, too.
         add_action('init', [$this, 'loadTextdomain']);
