@@ -4,7 +4,7 @@ Tags: podcast, text to speech, voice clone, podlove, auphonic
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,10 @@ Used to master the assembled episode and, without ffmpeg, to add opener, bridges
 Terms: https://auphonic.com/terms_of_service — Privacy: https://auphonic.com/privacy
 
 == Changelog ==
+
+= 0.4.1 =
+* German number check: a sign written as a character ("-4,4 mag", also with the minus sign or an en dash) counts as negative, as "minus" already did. Before, "-4,4" in the fact script against "minus vier Komma vier" in the spoken script was reported as an invented number and blocked text approval. Ranges such as "234–251" and names such as "M-31" are unaffected.
+* German number check: "tausend" on its own ("über tausend") is read as 1000.
 
 = 0.4.0 =
 * Podcast languages beyond German and English: any language code; prompts per language (backend, prompt directory subfolder, bundled, English fallback). The number check runs only for German and English, can be switched off (setting or per source) and the health check says when it is off.

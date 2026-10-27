@@ -54,6 +54,19 @@ final class NumberExtractorTest extends TestCase
             'Jahreszahl'              => [['zahl:2026', 'monat:9'], 'Der September 2026 bringt'],
             'zwei Jahreszahlen'       => [['zahl:2008', 'zahl:2013'], 'in den Jahren 2008 und 2013'],
             'numerisches Datum'       => [['tag:22', 'monat:9', 'zahl:2026'], 'am 22.09.2026'],
+            // Himmelsvorschau November 2026: das Vorzeichen als Zeichen.
+            'Bindestrich als Minus'   => [['zahl:-4.4'], 'schon mit -4,4 mag.'],
+            'Minuszeichen'            => [['zahl:-4.9'], 'mit −4,9 mag ihren größten Glanz'],
+            'Halbgeviertstrich als Minus' => [['zahl:-0.6'], 'mit –0,6 mag'],
+            'Minus in Klammern'       => [['zahl:-2.2'], 'hell (-2,2 mag)'],
+            'Minus ganzzahlig'        => [['zahl:-10'], 'bei -10 Grad'],
+            'Minus mit Groessenordnung' => [['zahl:-1500'], 'etwa -1,5 Tausend'],
+            'Minus mit Tausenderpunkt' => [['zahl:-27000'], 'bei -27.000'],
+            'Minus mit Dezimalpunkt'  => [['zahl:-1.8'], 'Helligkeit -1.8'],
+            'Seitenspanne'            => [['zahl:234', 'zahl:251'], 'S. 234–251'],
+            'Spanne mit Bindestrich'  => [['zahl:4', 'zahl:5'], 'in 4-5 Nächten'],
+            'Bindestrich nach Buchstabe' => [['zahl:31'], 'die Galaxie M-31'],
+            'Gedankenstrich mit Abstand' => [['zahl:5'], 'Jupiter – 5 Monde'],
         ];
     }
 
@@ -92,6 +105,11 @@ final class NumberExtractorTest extends TestCase
             'unbestimmter Artikel zaehlt nicht' => [[], 'zu einer neuen Ausgabe'],
             'ein als Artikel'         => [[], 'nur ein halbes Grad auseinander'],
             'Millionen allein'        => [[], 'Millionen von Kilometern'],
+            // Himmelsvorschau November 2026: "über 1000" wird "über tausend".
+            'tausend allein'          => [['zahl:1000'], 'der Prototyp von über tausend bekannten Flarestars'],
+            'Tausende sind keine Zahl' => [[], 'Tausende Sterne'],
+            'minus tausend'           => [['zahl:-1000'], 'minus tausend'],
+            'hundert tausend'         => [['zahl:100000'], 'hundert tausend Kilometer'],
             'Quelle schreibt aus'     => [['zahl:6', 'tag:17'], 'Sechs Tage vorher, am 17., wechselt sie'],
         ];
     }

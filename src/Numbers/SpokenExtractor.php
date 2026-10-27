@@ -52,8 +52,10 @@ final class SpokenExtractor
             }
 
             // "Millionen" on its own is not a number but a unit. Otherwise
-            // the parser would read it as one million.
-            if (isset(self::SCALES[$lower])) {
+            // the parser would read it as one million. "tausend" on its own
+            // is a number, though: "über 1000" becomes "über tausend" in the
+            // spoken script (sky preview November 2026).
+            if (isset(self::SCALES[$lower]) && $lower !== 'tausend') {
                 continue;
             }
 

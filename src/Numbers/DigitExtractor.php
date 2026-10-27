@@ -19,6 +19,16 @@ final class DigitExtractor
     private const DAY_LEAD = 'am|vom|zum|dem|den|des|seit|ab|bis|auf';
 
     /**
+     * A sign in German text: the word "minus", or a hyphen, minus sign or en
+     * dash directly in front of a digit. "-4,4 mag" in the fact script is the
+     * spoken "minus vier Komma vier"; read without the sign, the number gate
+     * reported both as invented (sky preview November 2026). Not after a
+     * letter or digit, so "S. 234–251", "4-5" and "M-31" stay ranges and
+     * names.
+     */
+    private const SIGN = '(?<![\p{L}\p{N}])[\-\x{2212}\x{2013}](?=\d)|minus\s+';
+
+    /**
      * @return list<NumberValue>
      */
     public static function extract(string $text, string $language = 'de'): array
@@ -172,7 +182,7 @@ final class DigitExtractor
         //    "369 Tausend". The spoken script uses a single word for this
         //    ("dreihundertneunundsechzigtausend"); without the thousands, this
         //    would compare 369 against 369000 (sky preview October 2026).
-        $rest = self::consume($rest, '/(minus\s+)?(\d+(?:,\d+)?)\s*(Milliarden?|Millionen?|Tausend)\b/iu', static function (array $m) use (&$values): void {
+        $rest = self::consume($rest, '/(' . self::SIGN . ')?(\d+(?:,\d+)?)\s*(Milliarden?|Millionen?|Tausend)\b/iu', static function (array $m) use (&$values): void {
             $value = (float) str_replace(',', '.', $m[2]);
             $factor = match (true) {
                 stripos($m[3], 'milliard') === 0 => 1000000000.0,
@@ -185,8 +195,8 @@ final class DigitExtractor
             $values[] = NumberValue::number($value * $factor, trim($m[0]));
         });
 
-        // 8. Decimal number with comma, sign taken into account: "minus 4,8".
-        $rest = self::consume($rest, '/(minus\s+)?(\d+),(\d+)/iu', static function (array $m) use (&$values): void {
+        // 8. Decimal number with comma, sign taken into account: "minus 4,8", "-4,8".
+        $rest = self::consume($rest, '/(' . self::SIGN . ')?(\d+),(\d+)/iu', static function (array $m) use (&$values): void {
             $value = (float) ($m[2] . '.' . $m[3]);
             if (($m[1] ?? '') !== '') {
                 $value = -$value;
@@ -195,8 +205,9 @@ final class DigitExtractor
         });
 
         // 9. Thousands grouping: "27.000".
-        $rest = self::consume($rest, '/\b\d{1,3}(?:\.\d{3})+\b/u', static function (array $m) use (&$values): void {
-            $values[] = NumberValue::number((float) str_replace('.', '', $m[0]), trim($m[0]));
+        $rest = self::consume($rest, '/(' . self::SIGN . ')?\b(\d{1,3}(?:\.\d{3})+)\b/iu', static function (array $m) use (&$values): void {
+            $value = (float) str_replace('.', '', $m[2]);
+            $values[] = NumberValue::number(($m[1] ?? '') !== '' ? -$value : $value, trim($m[0]));
         });
 
         // 9b. Decimal point, as in equipment names from the gallery: "f/1.8";
@@ -204,12 +215,13 @@ final class DigitExtractor
         //     script says "eins Komma acht". Without this pattern, "1.8" would
         //     count as 1 and 8 (sky preview October 2026). A period after or
         //     before it (date "5.10.") rules the pattern out.
-        $rest = self::consume($rest, '/(?<![\d.])(\d+)\.(\d{1,2})(?![\d.])/u', static function (array $m) use (&$values): void {
-            $values[] = NumberValue::number((float) ($m[1] . '.' . $m[2]), trim($m[0]));
+        $rest = self::consume($rest, '/(?<![\d.])(' . self::SIGN . ')?(\d+)\.(\d{1,2})(?![\d.])/iu', static function (array $m) use (&$values): void {
+            $value = (float) ($m[2] . '.' . $m[3]);
+            $values[] = NumberValue::number(($m[1] ?? '') !== '' ? -$value : $value, trim($m[0]));
         });
 
         // 10. All remaining digit sequences.
-        $rest = self::consume($rest, '/(minus\s+)?(\d+)/iu', static function (array $m) use (&$values): void {
+        $rest = self::consume($rest, '/(' . self::SIGN . ')?(\d+)/iu', static function (array $m) use (&$values): void {
             $value = (float) $m[2];
             if (($m[1] ?? '') !== '') {
                 $value = -$value;

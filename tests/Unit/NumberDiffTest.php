@@ -8,6 +8,28 @@ use PHPUnit\Framework\TestCase;
 
 final class NumberDiffTest extends TestCase
 {
+    /**
+     * Himmelsvorschau November 2026: sieben Abweichungen, alle Fehlalarme.
+     */
+    public function testSignedMagnitudesAndThousandAreClean(): void
+    {
+        $result = NumberDiff::compare(
+            'Am Morgen seht ihr sie schon mit -4,4 mag. Am 29. November erreicht sie mit −4,9 mag ihren größten Glanz. '
+                . 'Er ist mit -0,6 mag schon recht hell, mit bis zu -2,2 mag. UV Ceti ist der Prototyp von über 1000 bekannten Flarestars.',
+            'Am Morgen seht ihr sie schon mit minus vier Komma vier Magnituden. Am neunundzwanzigsten November erreicht sie mit minus vier Komma neun Magnituden ihren größten Glanz. '
+                . 'Er ist mit minus null Komma sechs Magnituden schon recht hell, mit bis zu minus zwei Komma zwei Magnituden. UV Ceti ist der Prototyp von über tausend bekannten Flarestars.'
+        );
+
+        self::assertFalse($result->isBlocking(), (string) wp_json_encode($result->toArray()));
+    }
+
+    public function testDroppedSignIsStillFound(): void
+    {
+        $result = NumberDiff::compare('mit -4,4 mag', 'mit vier Komma vier Magnituden');
+
+        self::assertTrue($result->isBlocking());
+    }
+
     public function testIdenticalTextsAreClean(): void
     {
         $result = NumberDiff::compare('Am 23. September um 2 Uhr 05', 'Am dreiundzwanzigsten September um zwei Uhr fünf');
