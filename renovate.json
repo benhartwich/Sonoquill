@@ -2,5 +2,20 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "packageRules": [
+    {
+      "description": "PHPUnit majors are raised deliberately: 12 needs PHP 8.3, 13 needs PHP 8.4.1, the plugin still supports 8.2.",
+      "matchPackageNames": [
+        "phpunit/phpunit"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    }
   ]
 }
