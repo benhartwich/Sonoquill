@@ -24,6 +24,8 @@ final class SettingsSanitizer
     private const TEXTAREA_FIELDS = [
         'ai_disclosure_text',
         'ai_disclosure_audio_text',
+        'podcast_concept',
+        'style_guide',
     ];
 
     /** Checkboxes: if missing from the request, the box is unchecked. */

@@ -43,6 +43,10 @@ final class Options
             'podcast_sign_off'     => '',
             'file_prefix'          => '',
             'podcast_language'     => '',
+            // Concept and style of the podcast, e.g. imported from a platform
+            // (Rest\ImportEndpoint). Appended to the script prompt when set.
+            'podcast_concept'      => '',
+            'style_guide'          => '',
             'elevenlabs_api_key'   => '',
             'elevenlabs_voice_id'  => '',
             'elevenlabs_model_id'  => 'eleven_multilingual_v2',

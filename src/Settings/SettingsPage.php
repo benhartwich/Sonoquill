@@ -202,6 +202,15 @@ final class SettingsPage
         );
 
         self::renderSection(
+            __('Style and concept', 'sonoquill'),
+            __('Optional. Appended to the prompt for the spoken script: how the host addresses listeners, typical phrases, structure, the way of speaking. The rules of the prompt (numbers, facts, output format) take precedence. A platform can fill these fields through the import interface.', 'sonoquill'),
+            [
+                self::textareaRow('style_guide', __('Style and way of speaking', 'sonoquill'), $values),
+                self::textareaRow('podcast_concept', __('Concept of the podcast', 'sonoquill'), $values),
+            ]
+        );
+
+        self::renderSection(
             __('Disclosure', 'sonoquill'),
             __('Appears at the end of every episode\'s show notes. The text is copied when an episode is created — so a later change only affects new episodes and does not rewrite drafts that already exist.', 'sonoquill'),
             [

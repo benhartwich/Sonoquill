@@ -47,6 +47,10 @@ Segments are paragraphs (long ones split at sentence ends); each has a hash over
 
 `Ai\Prompts` resolves each prompt: backend edit (option `aaspf_prompts`, per language) → `<prompt_dir>/<lang>/<name>.md` → `<prompt_dir>/<name>.md` → bundled `prompts/<lang>/<name>.md` → bundled `prompts/en/<name>.md`. The podcast language (`podcast_language`, any BCP-47-style code) selects prompts and number parser; the plugin's own wording inside prompts is German for German podcasts and English otherwise; the interface language is WordPress's.
 
+## Import interface
+
+`Rest\ImportEndpoint` (`POST /sonoquill/v1/import`, `GET /sonoquill/v1/import/status`, `manage_options`) lets a platform hand over concept, style, voice, dictionary, preset and credentials. `Import\SettingsImport` is the WordPress-free part: strict schema (unknown keys fail), normalisation, merge into `aaspf_settings` (fields not sent stay), credentials through `Crypto` and only reported as `gesetzt`. The endpoint adds the version check (older refused, same version idempotent via an HMAC fingerprint), a 60-second lock, the log in the option `sonoquill_import` and sets the local PLS aside when the dictionary or its version changes. `style_guide` and `podcast_concept` are appended to the script prompt (`PromptLoader::styleSection`).
+
 ## Storage and secrets
 
 Working files live in `uploads/sonoquill/data-<random>`, protected by `.htaccess`, `index.php` and `index.html`; the storage check probes them over HTTP (HEAD) and gives nginx/Apache snippets if they are served. The music folder only blocks listings (the settings page plays the files). The Podlove check warns when a protected feed sits next to Podlove's public download redirects. The filter `sonoquill_storage_dir` moves the working files elsewhere, e.g. outside the web root. API keys are encrypted with libsodium using `AASPF_ENCRYPTION_KEY` from `wp-config.php`; without the key nothing is stored.

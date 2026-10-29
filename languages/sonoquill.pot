@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Sonoquill – AI Podcast Production 0.3.0\n"
+"Project-Id-Version: Sonoquill – AI Podcast Production 0.5.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/sonoquill\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-12T12:45:30+00:00\n"
+"POT-Creation-Date: 2026-10-29T08:33:11+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: sonoquill\n"
@@ -981,7 +981,7 @@ msgid "Chapters"
 msgstr ""
 
 #: src/Admin/EpisodesPage.php:1081
-#: src/Settings/SettingsPage.php:205
+#: src/Settings/SettingsPage.php:214
 msgid "Disclosure"
 msgstr ""
 
@@ -1398,7 +1398,7 @@ msgid "Source"
 msgstr ""
 
 #: src/Admin/Overview.php:171
-#: src/Settings/SettingsPage.php:506
+#: src/Settings/SettingsPage.php:515
 msgid "Status"
 msgstr ""
 
@@ -1567,7 +1567,7 @@ msgid "your approval"
 msgstr ""
 
 #: src/Admin/Workflow.php:145
-#: src/Settings/SettingsPage.php:266
+#: src/Settings/SettingsPage.php:275
 msgid "automatic"
 msgstr ""
 
@@ -2238,12 +2238,12 @@ msgid "No own prompts for %1$s yet — the English ones apply and ask the model 
 msgstr ""
 
 #: src/Health/Checks/MontageCheck.php:24
-#: src/Settings/SettingsPage.php:265
+#: src/Settings/SettingsPage.php:274
 msgid "Assembly"
 msgstr ""
 
 #: src/Health/Checks/MontageCheck.php:33
-#: src/Settings/SettingsPage.php:274
+#: src/Settings/SettingsPage.php:283
 msgid "ffmpeg"
 msgstr ""
 
@@ -2260,7 +2260,7 @@ msgid "PHP — but opener, bridges and outro need Auphonic, and no Auphonic pres
 msgstr ""
 
 #: src/Health/Checks/MontageCheck.php:52
-#: src/Settings/SettingsPage.php:268
+#: src/Settings/SettingsPage.php:277
 msgid "PHP, music via Auphonic"
 msgstr ""
 
@@ -2379,7 +2379,7 @@ msgid "The music files (opener, outro, separators) can be downloaded from the we
 msgstr ""
 
 #: src/Jobs/Scheduler.php:43
-#: src/Settings/SettingsPage.php:528
+#: src/Settings/SettingsPage.php:537
 msgid "Action Scheduler is not loaded."
 msgstr ""
 
@@ -2964,7 +2964,7 @@ msgstr ""
 msgid "%1$d segments generated, %2$d characters used. Status: %3$d of %4$d ready, total duration %5$s."
 msgstr ""
 
-#: src/Plugin.php:106
+#: src/Plugin.php:108
 #: src/Settings/SettingsPage.php:38
 msgid "Settings"
 msgstr ""
@@ -3005,6 +3005,33 @@ msgstr ""
 msgid "Callback received, status \"%s\"."
 msgstr ""
 
+#: src/Rest/ImportEndpoint.php:87
+msgid "The import does not match the expected schema."
+msgstr ""
+
+#. translators: 1: version sent, 2: version already imported
+#: src/Rest/ImportEndpoint.php:97
+#, php-format
+msgid "Version %1$d is older than the imported version %2$d."
+msgstr ""
+
+#. translators: %d: version
+#: src/Rest/ImportEndpoint.php:110
+#, php-format
+msgid "Version %d was already imported with different content."
+msgstr ""
+
+#: src/Rest/ImportEndpoint.php:116
+msgid "Another import is running."
+msgstr ""
+
+#: src/Rest/ImportEndpoint.php:123
+#: src/Rest/ImportEndpoint.php:135
+#: src/Settings/SettingsSanitizer.php:186
+#: src/Settings/SettingsSanitizer.php:196
+msgid " Nothing was saved."
+msgstr ""
+
 #: src/Segments/Segmenter.php:47
 msgid "The episode has no spoken script."
 msgstr ""
@@ -3026,23 +3053,23 @@ msgid "approved"
 msgstr ""
 
 #. translators: %s: name of the settings field
-#: src/Settings/Options.php:126
+#: src/Settings/Options.php:130
 #, php-format
 msgid "\"%s\" is a secret and must be read via secret()."
 msgstr ""
 
-#: src/Settings/Options.php:225
+#: src/Settings/Options.php:229
 msgid "our host"
 msgstr ""
 
 #. translators: %s: name of the settings field
-#: src/Settings/Options.php:264
+#: src/Settings/Options.php:268
 #, php-format
 msgid "\"%s\" is not a secret."
 msgstr ""
 
 #. translators: %s: name of the credential settings field
-#: src/Settings/Options.php:277
+#: src/Settings/Options.php:281
 #, php-format
 msgid "The field \"%s\" is stored unencrypted in the database. Please enter it again in the settings."
 msgstr ""
@@ -3278,300 +3305,311 @@ msgstr ""
 msgid "Speech recognition must be switched off in the preset — chapters and transcript come from the plugin."
 msgstr ""
 
+#: src/Settings/SettingsPage.php:205
+msgid "Style and concept"
+msgstr ""
+
 #: src/Settings/SettingsPage.php:206
+msgid "Optional. Appended to the prompt for the spoken script: how the host addresses listeners, typical phrases, structure, the way of speaking. The rules of the prompt (numbers, facts, output format) take precedence. A platform can fill these fields through the import interface."
+msgstr ""
+
+#: src/Settings/SettingsPage.php:208
+msgid "Style and way of speaking"
+msgstr ""
+
+#: src/Settings/SettingsPage.php:209
+msgid "Concept of the podcast"
+msgstr ""
+
+#: src/Settings/SettingsPage.php:215
 msgid "Appears at the end of every episode's show notes. The text is copied when an episode is created — so a later change only affects new episodes and does not rewrite drafts that already exist."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:210
+#: src/Settings/SettingsPage.php:219
 msgid "Notice in the show notes"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:212
+#: src/Settings/SettingsPage.php:221
 msgid "Leaving it empty suppresses the notice entirely."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:216
+#: src/Settings/SettingsPage.php:225
 msgid "Notice in the audio as well"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:218
+#: src/Settings/SettingsPage.php:227
 msgid "Applies to episodes created afterwards. The sentence is spoken as a separate segment before the sign-off."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:222
+#: src/Settings/SettingsPage.php:231
 msgid "Spoken notice"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:224
+#: src/Settings/SettingsPage.php:233
 msgid "Spoken verbatim. Write out abbreviations such as “AI”."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:230
+#: src/Settings/SettingsPage.php:239
 msgid "Notifications"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:233
+#: src/Settings/SettingsPage.php:242
 msgid "Notify"
 msgstr ""
 
 #. translators: %s: address of the site admin
-#: src/Settings/SettingsPage.php:235
+#: src/Settings/SettingsPage.php:244
 #, php-format
 msgid "Separate multiple addresses with commas. Empty means: the admin address (%s). E-mails are sent when a text approval or an audio approval is pending and on errors — only for episodes that proceed automatically."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:238
+#: src/Settings/SettingsPage.php:247
 msgid "Approve by e-mail"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:238
+#: src/Settings/SettingsPage.php:247
 msgid "The “text awaiting approval” mail contains a signed link: it opens a confirmation page, one more click approves — without logging in. The link stops working after 48 hours or as soon as the script is edited. Only when the checks are clean. Anyone who can read the mail can approve."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:249
+#: src/Settings/SettingsPage.php:258
 msgid "Opener and outro"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:250
+#: src/Settings/SettingsPage.php:259
 msgid "The assembly places the audio logo before the episode and the outro after it, in stereo, and shifts chapters and transcript accordingly. The files are uploaded below."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:252
+#: src/Settings/SettingsPage.php:261
 msgid "Use"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:252
+#: src/Settings/SettingsPage.php:261
 msgid "Mix opener and outro into every new assembly."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:253
+#: src/Settings/SettingsPage.php:262
 msgid "Variants"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:254
+#: src/Settings/SettingsPage.php:263
 msgid "always the same (opener/outro, otherwise the first variant)"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:255
+#: src/Settings/SettingsPage.php:264
 msgid "in turn, episode by episode"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:256
+#: src/Settings/SettingsPage.php:265
 msgid "random, but fixed per episode"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:257
+#: src/Settings/SettingsPage.php:266
 msgid "If several opener or outro files are uploaded below (variants 1 to 5)."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:262
+#: src/Settings/SettingsPage.php:271
 msgid "Tools"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:263
+#: src/Settings/SettingsPage.php:272
 msgid "External programs for the assembly."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:267
+#: src/Settings/SettingsPage.php:276
 msgid "ffmpeg on this server"
 msgstr ""
 
 #. translators: %s: why the current path is active
-#: src/Settings/SettingsPage.php:271
+#: src/Settings/SettingsPage.php:280
 #, php-format
 msgid "With ffmpeg, the plugin mixes the music itself (bridges fade under the next chapter). Without it, segments are joined in PHP and Auphonic adds opener, bridges and outro. Currently: %s"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:274
+#: src/Settings/SettingsPage.php:283
 msgid "Program name or absolute path."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:275
+#: src/Settings/SettingsPage.php:284
 msgid "ffprobe"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:275
+#: src/Settings/SettingsPage.php:284
 msgid "Needed for the measured segment duration."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:278
+#: src/Settings/SettingsPage.php:287
 msgid "Pause between paragraphs (ms)"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:280
+#: src/Settings/SettingsPage.php:289
 msgid "Without this pause one paragraph runs into the next. The model's own sentence pauses are two to four tenths of a second — the paragraph pause should be longer."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:284
+#: src/Settings/SettingsPage.php:293
 msgid "Pause at chapter boundaries (ms)"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:286
+#: src/Settings/SettingsPage.php:295
 msgid "Inserted as silence, not as a break tag — only this keeps the chapter time exact. Both pauses are filled with room tone from the recording itself and faded in and out softly at the edges."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:290
+#: src/Settings/SettingsPage.php:299
 msgid "Delete everything on uninstall"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:292
+#: src/Settings/SettingsPage.php:301
 msgid "Removes tables and settings when the plugin is deleted. Off by default."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:309
+#: src/Settings/SettingsPage.php:318
 msgid "Opener, outro and separators: files"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:310
+#: src/Settings/SettingsPage.php:319
 msgid "Separators are short musical bridges between chapters (about 8 to 12 seconds). They start shortly after the last word; the next chapter begins 1.5 seconds before their end while the assembly fades them out. Up to five, used in rotation. Trim silence at the end of the file beforehand. Without separators the silent chapter pause is used."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:317
+#: src/Settings/SettingsPage.php:326
 msgid "Opener (audio logo)"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:318
+#: src/Settings/SettingsPage.php:327
 msgid "Outro"
 msgstr ""
 
 #. translators: %d: variant number
-#: src/Settings/SettingsPage.php:322
+#: src/Settings/SettingsPage.php:331
 #, php-format
 msgid "Opener variant %d"
 msgstr ""
 
 #. translators: %d: variant number
-#: src/Settings/SettingsPage.php:326
+#: src/Settings/SettingsPage.php:335
 #, php-format
 msgid "Outro variant %d"
 msgstr ""
 
 #. translators: %d: separator number
-#: src/Settings/SettingsPage.php:330
+#: src/Settings/SettingsPage.php:339
 #, php-format
 msgid "Separator %d"
 msgstr ""
 
 #. translators: 1: duration of the audio file in seconds, 2: upload date
-#: src/Settings/SettingsPage.php:340
+#: src/Settings/SettingsPage.php:349
 #, php-format
 msgid "%1$s seconds, uploaded on %2$s."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:341
+#: src/Settings/SettingsPage.php:350
 msgid "Remove file"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:343
+#: src/Settings/SettingsPage.php:352
 msgid "No file yet."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:350
+#: src/Settings/SettingsPage.php:359
 msgid "Upload files"
 msgstr ""
 
 #. translators: %s: name of the site language (Deutsch or English)
-#: src/Settings/SettingsPage.php:381
+#: src/Settings/SettingsPage.php:390
 #, php-format
 msgid "same as the site (%s)"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:488
+#: src/Settings/SettingsPage.php:497
 msgid "saved"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:489
+#: src/Settings/SettingsPage.php:498
 msgid "Leaving it empty means: unchanged. To replace it, simply enter the new value."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:491
+#: src/Settings/SettingsPage.php:500
 msgid "delete stored value"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:493
+#: src/Settings/SettingsPage.php:502
 msgid "not set"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:501
+#: src/Settings/SettingsPage.php:510
 msgid "Service status"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:502
+#: src/Settings/SettingsPage.php:511
 msgid "Each check runs as a separate request. None of them uses up credit."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:505
+#: src/Settings/SettingsPage.php:514
 msgid "Service"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:512
+#: src/Settings/SettingsPage.php:521
 msgid "not checked yet"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:517
+#: src/Settings/SettingsPage.php:526
 msgid "Check now"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:525
+#: src/Settings/SettingsPage.php:534
 msgid "Background processing"
 msgstr ""
 
 #. translators: %s: version number
-#: src/Settings/SettingsPage.php:532
+#: src/Settings/SettingsPage.php:541
 #, php-format
 msgid "Action Scheduler %s is active."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:538
+#: src/Settings/SettingsPage.php:547
 msgid "Test job scheduled"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:545
-#: src/Settings/SettingsPage.php:559
+#: src/Settings/SettingsPage.php:554
+#: src/Settings/SettingsPage.php:568
 msgid "never"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:549
+#: src/Settings/SettingsPage.php:558
 msgid "Test job executed"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:557
+#: src/Settings/SettingsPage.php:566
 msgid "still pending — Action Scheduler processes the queue via WP-Cron, which takes up to a minute."
 msgstr ""
 
-#: src/Settings/SettingsPage.php:568
+#: src/Settings/SettingsPage.php:577
 msgid "Schedule test job"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:575
+#: src/Settings/SettingsPage.php:584
 msgid "Database"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:581
+#: src/Settings/SettingsPage.php:590
 msgid "present"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:583
+#: src/Settings/SettingsPage.php:592
 msgid "missing"
 msgstr ""
 
-#: src/Settings/SettingsPage.php:588
+#: src/Settings/SettingsPage.php:597
 msgid "Schema version"
 msgstr ""
 
 #. translators: %s: name of the settings field
-#: src/Settings/SettingsSanitizer.php:139
+#: src/Settings/SettingsSanitizer.php:141
 #, php-format
 msgid "Invalid value for %s — the previous value is kept."
 msgstr ""
 
-#: src/Settings/SettingsSanitizer.php:161
+#: src/Settings/SettingsSanitizer.php:163
 msgid "At least one e-mail address was invalid and has been discarded."
-msgstr ""
-
-#: src/Settings/SettingsSanitizer.php:184
-#: src/Settings/SettingsSanitizer.php:194
-msgid " Nothing was saved."
 msgstr ""
 
 #. translators: %s: label of the episode source

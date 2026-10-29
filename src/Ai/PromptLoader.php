@@ -33,6 +33,41 @@ final class PromptLoader
      */
     public static function scriptSystemPrompt(): string
     {
-        return Prompts::get('script') . "\n\n---\n\n" . PronunciationDictionary::promptSection();
+        $style = self::styleSection(Options::get('style_guide'), Options::get('podcast_concept'), Options::isGerman());
+
+        return Prompts::get('script')
+            . ($style !== '' ? "\n\n---\n\n" . $style : '')
+            . "\n\n---\n\n" . PronunciationDictionary::promptSection();
+    }
+
+    /**
+     * Style and concept of the podcast as a prompt section (setting
+     * style_guide and podcast_concept, e.g. from the platform import).
+     * Empty when neither is set. The prompt's own rules take precedence.
+     */
+    public static function styleSection(string $style, string $concept, bool $german): string
+    {
+        $style = trim($style);
+        $concept = trim($concept);
+        if ($style === '' && $concept === '') {
+            return '';
+        }
+
+        $out = $german
+            ? "## STIL UND KONZEPT DES PODCASTS\n\nSo klingt dieser Podcast. Halte dich an Anrede, Ton, typische Wendungen und Aufbau, "
+                . "soweit die Vorlage das zulässt. Die Regeln oben (Fakten, Zahlen, Ausgabeformat, Pausen) haben immer Vorrang. "
+                . "Erfinde keine Inhalte, um eine Wendung unterzubringen.\n"
+            : "## STYLE AND CONCEPT OF THE PODCAST\n\nThis is how the podcast sounds. Follow its form of address, tone, typical phrases and "
+                . "structure as far as the source allows. The rules above (facts, numbers, output format, pauses) always take precedence. "
+                . "Do not invent content to fit a phrase in.\n";
+
+        if ($style !== '') {
+            $out .= "\n<stil>\n" . $style . "\n</stil>\n";
+        }
+        if ($concept !== '') {
+            $out .= "\n<konzept>\n" . $concept . "\n</konzept>\n";
+        }
+
+        return $out;
     }
 }

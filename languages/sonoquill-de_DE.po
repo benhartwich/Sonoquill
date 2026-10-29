@@ -4328,3 +4328,39 @@ msgstr "Das Aussprachewörterbuch ist ohne Version eingetragen, die Sprachsynthe
 #, php-format
 msgid "ElevenLabs did not report a latest version (HTTP %d)."
 msgstr "ElevenLabs meldet keine neueste Version (HTTP %d)."
+
+#: src/Rest/ImportEndpoint.php
+msgid "The import does not match the expected schema."
+msgstr "Der Import entspricht nicht dem erwarteten Schema."
+
+#. translators: 1: version sent, 2: version already imported
+#: src/Rest/ImportEndpoint.php
+#, php-format
+msgid "Version %1$d is older than the imported version %2$d."
+msgstr "Version %1$d ist älter als die bereits importierte Version %2$d."
+
+#. translators: %d: version
+#: src/Rest/ImportEndpoint.php
+#, php-format
+msgid "Version %d was already imported with different content."
+msgstr "Version %d wurde bereits mit anderem Inhalt importiert."
+
+#: src/Rest/ImportEndpoint.php
+msgid "Another import is running."
+msgstr "Gerade läuft ein anderer Import."
+
+#: src/Settings/SettingsPage.php
+msgid "Style and concept"
+msgstr "Stil und Konzept"
+
+#: src/Settings/SettingsPage.php
+msgid "Optional. Appended to the prompt for the spoken script: how the host addresses listeners, typical phrases, structure, the way of speaking. The rules of the prompt (numbers, facts, output format) take precedence. A platform can fill these fields through the import interface."
+msgstr "Optional. Wird an den Prompt für das Sprechskript angehängt: wie der Host die Hörer anspricht, typische Wendungen, Aufbau, Sprechduktus. Die Regeln des Prompts (Zahlen, Fakten, Ausgabeformat) haben Vorrang. Eine Plattform kann diese Felder über die Import-Schnittstelle füllen."
+
+#: src/Settings/SettingsPage.php
+msgid "Style and way of speaking"
+msgstr "Stil und Sprechduktus"
+
+#: src/Settings/SettingsPage.php
+msgid "Concept of the podcast"
+msgstr "Konzept des Podcasts"

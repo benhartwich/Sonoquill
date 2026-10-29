@@ -77,6 +77,7 @@ Actions:
 | `sonoquill_montage_done` | `int $id, string $relativePath` | end of the montage (path relative to the storage directory) |
 | `sonoquill_settings_sections` | `array $values` | settings page |
 | `sonoquill_daily` | — | daily run |
+| `sonoquill_settings_imported` | `int $version, array $changed` | after an import through the import interface (setting names only) |
 
 Filters:
 
@@ -92,6 +93,30 @@ Filters:
 | `sonoquill_option_defaults`, `sonoquill_settings_fields`, `sonoquill_health_checks`, `sonoquill_overview_cards`, `sonoquill_overview_panels` | settings, health checks, overview |
 
 The text approval is available as an API: `Sonoquill\Pipeline\Approval::approveText(int $id, string $actor = 'admin', bool $ignoreGate = false): bool` (reason in `Approval::lastError()`). It runs the same checks as the button and starts the automatic chain.
+
+## Import interface
+
+A platform that prepares a podcast (concept, style, voice, dictionary) can hand the settings over in one request:
+
+```http
+POST /wp-json/sonoquill/v1/import
+Authorization: Basic <user:application password>   (user with manage_options)
+
+{
+  "schema": 1,
+  "version": 4,
+  "quelle": "radioplattform",
+  "podcast": { "name": "…", "moderation": "…", "schlussgruss": "…", "sprache": "de" },
+  "konzept": "…",
+  "stil": "…",
+  "stimme": { "voice_id": "…", "modell": "eleven_multilingual_v2" },
+  "woerterbuch": { "id": "…", "version": "…" },
+  "auphonic": { "preset": "…" },
+  "schluessel": { "elevenlabs": "…", "anthropic": "…", "auphonic": "…" }
+}
+```
+
+Every field except `schema` and `version` is optional; what is not sent stays as it is. Unknown fields make the whole request fail (HTTP 400 with the reasons in `data.fehler`). The version must increase: an older version is refused (409), the same version with the same content is answered as unchanged, with other content refused (409). Credentials are encrypted with `AASPF_ENCRYPTION_KEY` (without it nothing is saved) and never returned — the response only says `"gesetzt": true` and whether each field changed (`geaendert`, `unveraendert`, `nicht_gesendet`). `GET /wp-json/sonoquill/v1/import/status` returns the imported version, the current voice, model, dictionary and preset, whether each key is set and the last log entries. The field names follow the German contract of radioplattform.eu.
 
 ## Development
 

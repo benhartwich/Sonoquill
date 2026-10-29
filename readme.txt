@@ -4,7 +4,7 @@ Tags: podcast, text to speech, voice clone, podlove, auphonic
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.4.1
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,11 @@ Used to master the assembled episode and, without ffmpeg, to add opener, bridges
 Terms: https://auphonic.com/terms_of_service — Privacy: https://auphonic.com/privacy
 
 == Changelog ==
+
+= 0.5.0 =
+* Import interface for platforms: POST /wp-json/sonoquill/v1/import takes over podcast name, host, sign-off, language, concept, style, voice, model, pronunciation dictionary (ID and pinned version), Auphonic preset and the ElevenLabs, Anthropic and Auphonic credentials. Only for users with manage_options (application password); strict schema; settings that are not sent stay as they are; credentials are stored encrypted and never returned. Versioned and idempotent, logged without credentials; GET /wp-json/sonoquill/v1/import/status reports the state. Action sonoquill_settings_imported.
+* New settings "Style and way of speaking" and "Concept of the podcast": appended to the prompt for the spoken script; the prompt's rules take precedence.
+* When the dictionary or its version changes through an import, the local PLS file is set aside and loaded again from the bound version.
 
 = 0.4.1 =
 * German number check: a sign written as a character ("-4,4 mag", also with the minus sign or an en dash) counts as negative, as "minus" already did. Before, "-4,4" in the fact script against "minus vier Komma vier" in the spoken script was reported as an invented number and blocked text approval. Ranges such as "234–251" and names such as "M-31" are unaffected.
